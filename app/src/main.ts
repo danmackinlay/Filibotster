@@ -82,7 +82,9 @@ function startMic(): void {
     settings.sttBackend === 'deepgram' ||
     (settings.sttBackend === 'auto' && settings.deepgramKey.length > 0)
   if (useDeepgram) {
-    switchSource(() => new DeepgramSource(settings.deepgramKey, sttEvents))
+    switchSource(
+      () => new DeepgramSource(settings.deepgramKey, sttEvents, settings.micDeviceId || undefined),
+    )
   } else if (webSpeechAvailable()) {
     switchSource(() => new WebSpeechSource(sttEvents))
   } else {

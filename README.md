@@ -9,9 +9,9 @@ their recent language reads as AI-generated slop.
 **Public instance:** `https://filibotster.danmackinlay.name`
 <!-- TODO: confirm URL after first Netlify deploy + domain attach -->
 
-See [SPEC.md](SPEC.md) for the full design. Current state: **M1** (dial,
-subtitles, lexical slop meter, replay demo, Pangram client + relay) plus the
-Web Speech API live-mic path pulled forward from M2.
+See [SPEC.md](SPEC.md) for the full design. Current state: **M2** — dial,
+subtitles, lexical slop meter, replay demo, Pangram client + relay, and both
+live-mic paths (Deepgram streaming with mic picker, Web Speech API fallback).
 
 ## Quick start (local, no keys needed)
 
@@ -22,13 +22,28 @@ npm run dev
 ```
 
 Open the printed URL, hit **▶ REPLAY DEMO**, and watch the bundled demo speech
-decay from artisanal to pure slop. **● LIVE MIC** uses your browser's built-in
-speech recognition (Chrome recommended) — still no keys.
+decay from artisanal to pure slop. **● LIVE MIC** without keys uses the
+browser's built-in speech recognition — which in practice means **real Google
+Chrome only**: Chromium forks (Arc, Brave, etc.) expose the API but their
+recognizer fails, and the app will tell you so after a few attempts. For any
+other browser, or better accuracy, bring a Deepgram key (below).
 
 Keyboard: `f` fullscreen · `space` pause · `d` diagnostics · `r` replay · `,` config.
 
 URL params: `?demo` auto-starts the replay; `?demo=slop` pre-warms the meter
 with the speech's slop section (used for screenshots and instant gratification).
+
+## Getting keys
+
+- **Deepgram** (speech-to-text, optional): sign up at
+  [console.deepgram.com](https://console.deepgram.com) — no card, and new
+  accounts get $200 of free credit (streaming costs ~$0.006/min ≈ $0.35/hour,
+  so that's ~550 hours of speeches). Create a key with **Create API Key**,
+  paste it into config (`,`). Works in every modern browser and unlocks the
+  mic picker.
+- **Pangram** (the slop verdicts): get an API key from your
+  [pangram.com](https://www.pangram.com) dashboard and buy developer credits
+  ([pricing](https://www.pangram.com/pricing)). Costs below.
 
 ## Pangram (the real detector)
 

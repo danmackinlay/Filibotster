@@ -1,6 +1,7 @@
 export interface Settings {
   sttBackend: 'auto' | 'deepgram' | 'webspeech'
   deepgramKey: string
+  micDeviceId: string
   pangramKey: string
   relayUrl: string
   pollIntervalS: number
@@ -13,6 +14,7 @@ export interface Settings {
 export const DEFAULTS: Settings = {
   sttBackend: 'auto',
   deepgramKey: '',
+  micDeviceId: '',
   pangramKey: '',
   relayUrl: '',
   pollIntervalS: 20,

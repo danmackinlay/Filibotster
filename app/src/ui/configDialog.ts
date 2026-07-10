@@ -1,4 +1,35 @@
 import type { Settings } from '../config'
+import { webSpeechAvailable } from '../audio/webspeech'
+
+function sttCapabilityNote(): string {
+  if (!webSpeechAvailable()) {
+    return 'This browser has no Web Speech API — live mic needs a Deepgram key.'
+  }
+  return (
+    'Web Speech API detected. It is only reliable in real Google Chrome; ' +
+    'other Chromium-based browsers usually fail with a network error. ' +
+    'A Deepgram key works in any modern browser.'
+  )
+}
+
+async function populateMics(select: HTMLSelectElement, current: string): Promise<void> {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices()
+    const mics = devices.filter((d) => d.kind === 'audioinput' && d.deviceId !== '')
+    select.length = 1 // keep "System default"
+    mics.forEach((m, i) => {
+      const opt = document.createElement('option')
+      opt.value = m.deviceId
+      // labels are blank until the user has granted mic permission once
+      opt.textContent = m.label || `Microphone ${i + 1}`
+      select.append(opt)
+    })
+    select.value = current
+    if (select.value !== current) select.value = ''
+  } catch {
+    /* no device enumeration (permissions / API absent) — leave default */
+  }
+}
 
 export function setupConfigDialog(
   dialog: HTMLDialogElement,
@@ -6,6 +37,7 @@ export function setupConfigDialog(
   onSave: (s: Settings) => void,
 ): { open(): void } {
   const form = dialog.querySelector<HTMLFormElement>('#config-form')!
+  const capability = dialog.querySelector<HTMLElement>('#stt-capability')
 
   const fill = () => {
     const s = get()
@@ -23,6 +55,7 @@ export function setupConfigDialog(
     const data = new FormData(form)
     s.sttBackend = (data.get('sttBackend') as Settings['sttBackend']) ?? s.sttBackend
     s.deepgramKey = String(data.get('deepgramKey') ?? '')
+    s.micDeviceId = String(data.get('micDeviceId') ?? '')
     s.pangramKey = String(data.get('pangramKey') ?? '')
     s.relayUrl = String(data.get('relayUrl') ?? '')
     s.pollIntervalS = clamp(Number(data.get('pollIntervalS')), 10, 300, 20)
@@ -36,6 +69,11 @@ export function setupConfigDialog(
   return {
     open() {
       fill()
+      if (capability) capability.textContent = sttCapabilityNote()
+      void populateMics(
+        form.elements.namedItem('micDeviceId') as HTMLSelectElement,
+        get().micDeviceId,
+      )
       dialog.showModal()
     },
   }
