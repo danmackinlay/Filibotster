@@ -25,12 +25,6 @@ export class Subtitles {
     this.render()
   }
 
-  clear(): void {
-    this.finalTail = ''
-    this.interim = ''
-    this.render()
-  }
-
   private render(): void {
     this.el.textContent = ''
     const fin = document.createElement('span')
