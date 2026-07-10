@@ -483,6 +483,25 @@ body::before {
   letter-spacing: 0.14em;
 }
 
+.overlay-credit {
+  margin-top: 1.4rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(236, 224, 196, 0.12);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  opacity: 0.55;
+}
+
+.overlay-credit a {
+  color: var(--brass);
+  text-decoration: none;
+  border-bottom: 1px dotted color-mix(in srgb, var(--brass) 60%, transparent);
+}
+
+.overlay-credit a:hover {
+  border-bottom-style: solid;
+}
+
 /* ---------- banner ---------- */
 #banner {
   position: fixed;

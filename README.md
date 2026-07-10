@@ -106,3 +106,8 @@ One Worker serves the app as static assets and relays `/task`
 AI-text detectors are calibrated on written prose, not ASR transcripts of
 speech. The needle is satire, not forensics. Tune the free detector to taste
 in [app/src/slop-lexicon.json](app/src/slop-lexicon.json).
+
+---
+
+*A nag from the [Dan MacKinlay Stable of Variably Well-Considered
+Enterprises](https://danmackinlay.name).*
