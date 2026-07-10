@@ -1,7 +1,7 @@
 export interface DetectorResult {
   /** 0 (artisanal) .. 1 (pure slop) */
   score: number
-  source: 'lexical' | 'pangram'
+  source: 'lexical' | 'pangram' | 'sapling'
   label: string
   detail?: string
   confidence?: string

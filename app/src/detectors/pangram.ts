@@ -47,6 +47,10 @@ export class PangramClient {
     return this.getApiKey().length > 0
   }
 
+  get costUsd(): number {
+    return this.creditsSpent * CREDIT_USD
+  }
+
   async scan(text: string, { pollMs = 1000, timeoutMs = 20_000 } = {}): Promise<PangramVerdict> {
     const relay = this.getRelayUrl().replace(/\/$/, '')
     const headers = { 'Content-Type': 'application/json', 'x-api-key': this.getApiKey() }

@@ -123,6 +123,31 @@ body::before {
   }
 }
 
+#btn-power {
+  font-family: 'Saira Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  padding: 0.28rem 0.9rem;
+  border-radius: 999px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid rgba(236, 224, 196, 0.35);
+  color: var(--cream);
+  opacity: 0.7;
+}
+
+#btn-power[data-on='true'] {
+  opacity: 1;
+  border-color: var(--live);
+  color: var(--live);
+  box-shadow: 0 0 12px rgba(127, 174, 98, 0.25);
+}
+
+#btn-power:hover {
+  border-color: var(--brass);
+}
+
 #link-github {
   font-size: 0.62rem;
   letter-spacing: 0.12em;
@@ -267,6 +292,22 @@ body::before {
   letter-spacing: 0.1em;
   color: var(--amber);
   min-height: 1.2em;
+}
+
+#readout-freshness {
+  margin-top: 0.25rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: var(--cream);
+  opacity: 0.45;
+  min-height: 1.2em;
+  transition: opacity 0.3s, color 0.3s;
+}
+
+/* dispatch lamp: flares when a window is sent to the classifier */
+#readout-freshness.dispatched {
+  color: var(--amber);
+  opacity: 1;
 }
 
 /* ---------- subtitles ---------- */

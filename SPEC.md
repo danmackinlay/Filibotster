@@ -116,6 +116,12 @@ Pluggable interface; each detector emits `{ score: 0..1, label, confidence, deta
 - Error handling: `402` → "out of credits" banner; `429` → back off, double interval;
   `STAGE_FAILED` → show reason, keep last good score.
 
+**SaplingDetector** (swappable alternative to Pangram, added post-M2)
+- Same scheduler and window as Pangram, selected via config (`cloudDetector`). Sync
+  `POST api.sapling.ai/api/v1/aidetect`, browser-direct (CORS open, key in body — no
+  relay). Returns continuous P(AI) + per-sentence scores; ~$0.005/1k chars ≈ $1.22/hr.
+  Rationale and comparison: docs/research-commercial-detectors.md.
+
 **LexicalDetector** (free, continuous, funnier)
 - Pure in-browser heuristic recomputed on every finalized segment over the same window:
   slop lexicon hits per 100 words ("delve", "tapestry", "testament to", "in today's

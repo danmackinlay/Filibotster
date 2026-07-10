@@ -56,13 +56,14 @@ export function setupConfigDialog(
     s.sttBackend = (data.get('sttBackend') as Settings['sttBackend']) ?? s.sttBackend
     s.deepgramKey = String(data.get('deepgramKey') ?? '')
     s.micDeviceId = String(data.get('micDeviceId') ?? '')
+    s.cloudDetector = (data.get('cloudDetector') as Settings['cloudDetector']) ?? s.cloudDetector
     s.pangramKey = String(data.get('pangramKey') ?? '')
+    s.saplingKey = String(data.get('saplingKey') ?? '')
     s.relayUrl = String(data.get('relayUrl') ?? '')
     s.pollIntervalS = clamp(Number(data.get('pollIntervalS')), 10, 300, 20)
     s.windowWords = clamp(Number(data.get('windowWords')), 80, 1000, 250)
     s.replayWpm = clamp(Number(data.get('replayWpm')), 60, 400, 170)
     s.lexicalEnabled = data.get('lexicalEnabled') === 'on'
-    s.pangramEnabled = data.get('pangramEnabled') === 'on'
     s.sensitivity = clamp(Number(data.get('sensitivity')), 0.5, 2.5, 1)
     onSave(s)
   })

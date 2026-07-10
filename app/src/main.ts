@@ -6,7 +6,8 @@ import { WebSpeechSource, webSpeechAvailable } from './audio/webspeech'
 import { DeepgramSource } from './audio/deepgram'
 import { TranscriptStore } from './transcript/store'
 import { lexicalScore } from './detectors/lexical'
-import { PangramClient, PangramError, CREDIT_USD, MIN_WORDS } from './detectors/pangram'
+import { PangramClient, MIN_WORDS } from './detectors/pangram'
+import { SaplingClient } from './detectors/sapling'
 import { Needle } from './detectors/fusion'
 import { createDial } from './ui/dial'
 import { Subtitles } from './ui/subtitles'
@@ -19,8 +20,8 @@ let settings: Settings = loadSettings()
 const store = new TranscriptStore()
 const needle = new Needle()
 let source: SttSource | null = null
-let startCurrentSource: (() => void) | null = null
-let paused = false
+let currentFactory: (() => SttSource) | null = null
+let powered = false
 
 // ---------- elements ----------
 const $ = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel)!
@@ -28,6 +29,8 @@ const overlay = $('#overlay')
 const dialStage = $('#dial-stage')
 const readoutScore = $('#readout-score')
 const readoutHeadline = $('#readout-headline')
+const readoutFreshness = $('#readout-freshness')
+const btnPower = $('#btn-power')
 const pillStt = $('#pill-stt')
 const pillPangram = $('#pill-pangram')
 const banner = $('#banner')
@@ -41,17 +44,17 @@ const configDialog = setupConfigDialog(
   (s) => {
     settings = s
     saveSettings(s)
-    updatePangramPill()
+    updateCloudPill()
   },
 )
 
 // ---------- STT wiring ----------
 const sttEvents: SttEvents = {
   onInterim: (text) => {
-    if (!paused) subtitles.setInterim(text)
+    if (powered) subtitles.setInterim(text)
   },
   onFinal: (text) => {
-    if (!paused) {
+    if (powered) {
       store.appendFinal(text)
       subtitles.addFinal(text)
     }
@@ -65,12 +68,39 @@ const sttEvents: SttEvents = {
 
 function switchSource(make: () => SttSource): void {
   source?.stop()
-  const next = make()
-  source = next
-  startCurrentSource = () => void next.start().catch(() => {})
-  startCurrentSource()
+  currentFactory = make
+  source = make()
+  void source.start().catch(() => {})
   overlay.classList.add('hidden')
-  paused = false
+  powered = true
+  updatePowerUi()
+}
+
+function powerOff(): void {
+  powered = false
+  source?.stop()
+  // needle spirals down to zero; nothing is scored, no tokens burn
+  needle.setLexical(0)
+  needle.setPangram(null)
+  needle.setWpm(0)
+  readoutHeadline.textContent = ''
+  updateCloudPill()
+  updatePowerUi()
+}
+
+function togglePower(): void {
+  if (powered) {
+    powerOff()
+  } else if (currentFactory) {
+    switchSource(currentFactory)
+  } else {
+    overlay.classList.remove('hidden')
+  }
+}
+
+function updatePowerUi(): void {
+  btnPower.dataset.on = String(powered)
+  btnPower.textContent = powered ? '● LIVE' : '○ STANDBY'
 }
 
 function startReplay(): void {
@@ -113,37 +143,54 @@ store.onChange(() => {
   })
 })
 
-// ---------- Pangram scheduler ----------
-// When the app is served by the relay Worker itself (the default deployment),
-// an empty relay URL means "this same origin".
+// ---------- cloud detector scheduler ----------
+// Swappable verdict backend: Pangram (via the relay; an empty relay URL means
+// "this same origin" on the default deployment) or Sapling (browser-direct).
 const pangram = new PangramClient(
   () => settings.relayUrl.trim() || location.origin,
   () => settings.pangramKey,
 )
-let pangramInFlight = false
+const sapling = new SaplingClient(() => settings.saplingKey)
+
+const cloudLabel = (): string => settings.cloudDetector.toUpperCase()
+const cloudConfigured = (): boolean =>
+  settings.cloudDetector === 'pangram'
+    ? pangram.configured
+    : settings.cloudDetector === 'sapling'
+      ? sapling.configured
+      : false
+const cloudCostUsd = (): number => pangram.costUsd + sapling.costUsd
+
+let cloudInFlight = false
 let lastScanAt = 0
 let lastScanWords = 0
 let backoffUntil = 0
+// dispatch/freshness telemetry: when we last sent a window and what stretch
+// of real speech time that window covered
+let dispatchSpan: { from: number; to: number } | null = null
+let verdictAt = 0
+let verdictSpan: { from: number; to: number } | null = null
 
-function updatePangramPill(state?: string, label?: string): void {
+function updateCloudPill(state?: string, label?: string): void {
   if (state) {
     pillPangram.dataset.state = state
-    pillPangram.textContent = `PANGRAM: ${label ?? state.toUpperCase()}`
-  } else if (!settings.pangramEnabled || !pangram.configured) {
+    pillPangram.textContent = `${cloudLabel()}: ${label ?? state.toUpperCase()}`
+  } else if (settings.cloudDetector === 'none') {
     pillPangram.dataset.state = 'off'
-    pillPangram.textContent = pangram.configured ? 'PANGRAM: OFF' : 'PANGRAM: NO KEY'
+    pillPangram.textContent = 'CLOUD: OFF'
+  } else {
+    pillPangram.dataset.state = 'off'
+    pillPangram.textContent = `${cloudLabel()}: ${cloudConfigured() ? 'IDLE' : 'NO KEY'}`
   }
 }
-updatePangramPill()
+updateCloudPill()
 
-async function maybeScanPangram(): Promise<void> {
+async function maybeScanCloud(): Promise<void> {
   const now = Date.now()
   if (
-    !settings.pangramEnabled ||
-    !pangram.configured ||
-    !source ||
-    paused ||
-    pangramInFlight ||
+    !cloudConfigured() ||
+    !powered ||
+    cloudInFlight ||
     now < backoffUntil ||
     now - lastScanAt < settings.pollIntervalS * 1000 ||
     store.wordCount < MIN_WORDS ||
@@ -151,34 +198,43 @@ async function maybeScanPangram(): Promise<void> {
   ) {
     return
   }
-  pangramInFlight = true
-  updatePangramPill('connecting', 'SCANNING')
+  cloudInFlight = true
+  dispatchSpan = store.windowSpan(settings.windowWords)
+  readoutFreshness.classList.add('dispatched')
+  setTimeout(() => readoutFreshness.classList.remove('dispatched'), 1200)
+  updateCloudPill('connecting', 'SCANNING')
+  const backend = settings.cloudDetector
   try {
-    const verdict = await pangram.scan(store.windowText(settings.windowWords))
+    const text = store.windowText(settings.windowWords)
+    const verdict = backend === 'pangram' ? await pangram.scan(text) : await sapling.scan(text)
     lastScanAt = Date.now()
     lastScanWords = store.wordCount
+    verdictAt = Date.now()
+    verdictSpan = dispatchSpan
     needle.setPangram(calibrate(verdict.score))
-    readoutHeadline.textContent = verdict.headline
-    updatePangramPill('live', `${Math.round(verdict.score * 100)}`)
+    readoutHeadline.textContent =
+      'headline' in verdict ? verdict.headline : `SAPLING · ${verdict.detail ?? ''}`
+    updateCloudPill('live', `${Math.round(verdict.score * 100)}`)
     diagnostics.set({
-      pangram: `${Math.round(verdict.score * 100)} · ai ${verdict.fractionAi.toFixed(2)}`,
+      pangram: `${Math.round(verdict.score * 100)} · ${verdict.detail ?? ''}`,
       rtt: `${verdict.rttMs} ms`,
-      creditsUsd: pangram.creditsSpent * CREDIT_USD,
+      creditsUsd: cloudCostUsd(),
     })
   } catch (err) {
     lastScanAt = Date.now()
-    const e = err instanceof PangramError ? err : new PangramError(0, String(err))
-    updatePangramPill('error', 'ERROR')
-    showBanner(`Pangram: ${e.message}`)
-    if (e.status === 429 || e.status === 402) {
+    const status = err instanceof Error && 'status' in err ? Number(err.status) : 0
+    const msg = err instanceof Error ? err.message : String(err)
+    updateCloudPill('error', 'ERROR')
+    showBanner(`${cloudLabel()}: ${msg}`)
+    if (status === 429 || status === 402) {
       backoffUntil = Date.now() + 2 * settings.pollIntervalS * 1000
     }
-    diagnostics.set({ creditsUsd: pangram.creditsSpent * CREDIT_USD })
+    diagnostics.set({ creditsUsd: cloudCostUsd() })
   } finally {
-    pangramInFlight = false
+    cloudInFlight = false
   }
 }
-setInterval(() => void maybeScanPangram(), 1000)
+setInterval(() => void maybeScanCloud(), 1000)
 
 // ---------- render loop ----------
 // rAF drives the needle while visible; browsers pause rAF in hidden tabs, so
@@ -206,11 +262,35 @@ function frame(now: number): void {
 requestAnimationFrame(frame)
 
 // slow telemetry tick
+const ago = (t: number) => `${Math.max(0, Math.round((Date.now() - t) / 1000))}s`
+
+function renderFreshness(): void {
+  if (!powered) {
+    readoutFreshness.textContent = 'STANDBY — nothing is scored, no credits burn'
+    return
+  }
+  if (!cloudConfigured()) {
+    readoutFreshness.textContent = 'lexical meter only — continuous, free'
+    return
+  }
+  if (cloudInFlight && dispatchSpan) {
+    readoutFreshness.textContent = `◉ window dispatched — speech from ${ago(dispatchSpan.from)} to ${ago(dispatchSpan.to)} ago`
+    return
+  }
+  if (verdictAt && verdictSpan) {
+    readoutFreshness.textContent =
+      `verdict ${ago(verdictAt)} ago · covered speech from ${ago(verdictSpan.from)} to ${ago(verdictSpan.to)} ago`
+    return
+  }
+  readoutFreshness.textContent = 'warming up — no window dispatched yet'
+}
+
 setInterval(() => {
   if (document.hidden) stepAndRender(performance.now(), 2)
-  needle.setWpm(source && !paused ? store.wpm() : 0)
+  needle.setWpm(powered ? store.wpm() : 0)
   diagnostics.set({ wpm: store.wpm() })
   diagnostics.pushScore(needle.value)
+  renderFreshness()
 }, 500)
 
 // ---------- banner ----------
@@ -226,6 +306,7 @@ function showBanner(msg: string): void {
 $('#btn-replay').addEventListener('click', startReplay)
 $('#btn-mic').addEventListener('click', startMic)
 $('#btn-config').addEventListener('click', () => configDialog.open())
+btnPower.addEventListener('click', togglePower)
 
 // ?demo auto-starts the replay (shareable demo link, headless screenshots);
 // ?demo=slop pre-warms the window with the speech's slop section so the
@@ -265,15 +346,7 @@ document.addEventListener('keydown', (ev) => {
       break
     case ' ':
       ev.preventDefault()
-      if (!source) break
-      paused = !paused
-      if (paused) {
-        source.stop()
-        pillStt.dataset.state = 'off'
-        pillStt.textContent = 'STT: PAUSED'
-      } else {
-        startCurrentSource?.()
-      }
+      togglePower()
       break
   }
 })

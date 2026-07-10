@@ -41,9 +41,16 @@ with the speech's slop section (used for screenshots and instant gratification).
   so that's ~550 hours of speeches). Create a key with **Create API Key**,
   paste it into config (`,`). Works in every modern browser and unlocks the
   mic picker.
-- **Pangram** (the slop verdicts): get an API key from your
+- **Pangram** (slop verdicts, strict): get an API key from your
   [pangram.com](https://www.pangram.com) dashboard and buy developer credits
   ([pricing](https://www.pangram.com/pricing)). Costs below.
+- **Sapling** (slop verdicts, livelier and ~7× cheaper): sign up at
+  [sapling.ai](https://sapling.ai), grab an API key from the dashboard.
+  Metered at $0.005/1k chars ≈ **$1.22/hour of speech** at the default
+  cadence, no subscription floor, and it talks to the browser directly (no
+  relay). Its raw continuous P(AI) is deliberately less verdict-smoothed
+  than Pangram — see [docs/research-commercial-detectors.md](docs/research-commercial-detectors.md).
+  Pick the backend in config → Cloud slop detector.
 
 ## Pangram (the real detector)
 

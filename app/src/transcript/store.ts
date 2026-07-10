@@ -28,6 +28,13 @@ export class TranscriptStore {
     return this.words.map((x) => x.w).join(' ')
   }
 
+  /** Wall-clock span of the last nWords (what a scan of that window covers). */
+  windowSpan(nWords: number): { from: number; to: number } | null {
+    if (this.words.length === 0) return null
+    const start = Math.max(0, this.words.length - nWords)
+    return { from: this.words[start].at, to: this.words[this.words.length - 1].at }
+  }
+
   /** Words per minute over the trailing window (default 60 s). */
   wpm(windowMs = 60_000): number {
     const cutoff = Date.now() - windowMs
