@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FILIBOTSTER — rhetorical slop telemetry</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Saira+Extra+Condensed:wght@600;800&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+    rel="stylesheet"
+  />
+</head>
+<body>
+  <main id="app">
+    <header id="masthead">
+      <div class="brand">FILIBOTSTER</div>
+      <div class="brand-sub">RHETORICAL SLOP TELEMETRY · UNIT 01</div>
+      <div id="status-pills">
+        <span class="pill" id="pill-stt" data-state="off">STT: OFF</span>
+        <span class="pill" id="pill-pangram" data-state="off">PANGRAM: OFF</span>
+      </div>
+      <button id="btn-config" class="panel-btn" title="Config (,)">⚙</button>
+    </header>
+
+    <section id="dial-stage">
+      <div id="dial-mount"></div>
+      <div id="readout">
+        <div id="readout-score">00</div>
+        <div id="readout-unit">SLOP INDEX</div>
+        <div id="readout-headline">&nbsp;</div>
+      </div>
+    </section>
+
+    <aside id="diagnostics" hidden>
+      <h2>DIAGNOSTICS <span class="dim">(d)</span></h2>
+      <dl>
+        <dt>WPM</dt><dd id="diag-wpm">–</dd>
+        <dt>WORDS</dt><dd id="diag-words">0</dd>
+        <dt>LEXICAL</dt><dd id="diag-lexical">–</dd>
+        <dt>PANGRAM</dt><dd id="diag-pangram">–</dd>
+        <dt>RTT</dt><dd id="diag-rtt">–</dd>
+        <dt>CREDITS</dt><dd id="diag-credits">$0.00</dd>
+        <dt>HITS</dt><dd id="diag-hits">–</dd>
+      </dl>
+      <canvas id="diag-spark" width="220" height="48"></canvas>
+    </aside>
+
+    <footer id="subtitles">
+      <div id="subtitle-text"><span class="hint">— transcript will appear here —</span></div>
+    </footer>
+
+    <div id="overlay">
+      <div class="overlay-card">
+        <div class="overlay-brand">FILIBOTSTER</div>
+        <p class="overlay-tag">Live rhetorical slop telemetry for the modern podium.</p>
+        <div class="overlay-actions">
+          <button id="btn-replay" class="big-btn">▶ REPLAY DEMO</button>
+          <button id="btn-mic" class="big-btn secondary">● LIVE MIC</button>
+        </div>
+        <p class="overlay-fine">
+          Demo mode needs no keys. Live mic uses your browser's speech recognition,
+          or a Deepgram key from config. Pangram verdicts require a Pangram key (config ⚙).
+        </p>
+        <p class="overlay-fine dim">f fullscreen · space pause · d diagnostics · , config</p>
+      </div>
+    </div>
+
+    <div id="banner" hidden></div>
+
+    <dialog id="config-dialog">
+      <form method="dialog" id="config-form">
+        <h2>CONFIGURATION</h2>
+
+        <fieldset>
+          <legend>Speech-to-text</legend>
+          <label>Backend
+            <select name="sttBackend">
+              <option value="auto">Auto (Deepgram if key, else Web Speech)</option>
+              <option value="deepgram">Deepgram</option>
+              <option value="webspeech">Web Speech API (free)</option>
+            </select>
+          </label>
+          <label>Deepgram API key
+            <input type="password" name="deepgramKey" placeholder="optional" autocomplete="off" />
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Pangram</legend>
+          <label>Pangram API key
+            <input type="password" name="pangramKey" placeholder="optional — lexical meter works without" autocomplete="off" />
+          </label>
+          <label>Relay URL
+            <input type="url" name="relayUrl" placeholder="https://your-worker.workers.dev" />
+          </label>
+          <label>Poll interval (seconds)
+            <input type="number" name="pollIntervalS" min="10" max="300" step="5" />
+          </label>
+          <label>Window size (words)
+            <input type="number" name="windowWords" min="80" max="1000" step="10" />
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Detectors</legend>
+          <label class="check"><input type="checkbox" name="lexicalEnabled" /> Lexical slop meter (free)</label>
+          <label class="check"><input type="checkbox" name="pangramEnabled" /> Pangram (uses credits)</label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Replay</legend>
+          <label>Replay speed (WPM)
+            <input type="number" name="replayWpm" min="60" max="400" step="10" />
+          </label>
+        </fieldset>
+
+        <p class="config-note">
+          Keys are stored in this browser's localStorage only, and sent only to their
+          respective APIs. The Pangram key transits the relay (never stored there).
+        </p>
+
+        <div class="config-actions">
+          <button value="cancel" formnovalidate>Cancel</button>
+          <button value="save" id="config-save">Save</button>
+        </div>
+      </form>
+    </dialog>
+  </main>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
