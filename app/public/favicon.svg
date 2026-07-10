@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Miniature slop-o-meter: cream meter card, needle pinned in the red. -->
+  <rect x="1.5" y="1.5" width="61" height="61" rx="13" fill="#ece0c4" stroke="#2a2118" stroke-width="3"/>
+  <!-- scale: ink → amber → red (pivot 32,47 r 27) -->
+  <path d="M 5 47 A 27 27 0 0 1 40.3 21.3" fill="none" stroke="#2a2118" stroke-width="3"/>
+  <path d="M 40.3 21.3 A 27 27 0 0 1 53.8 31.1" fill="none" stroke="#c9862c" stroke-width="7"/>
+  <path d="M 53.8 31.1 A 27 27 0 0 1 59 47" fill="none" stroke="#a92c1b" stroke-width="7"/>
+  <!-- needle at ~62° -->
+  <line x1="32" y1="47" x2="57.6" y2="33.4" stroke="#241c14" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- brass hub -->
+  <circle cx="32" cy="47" r="6" fill="#b08d4f" stroke="#3a2d15" stroke-width="1.5"/>
+  <line x1="29" y1="45" x2="35" y2="49" stroke="#3a2d15" stroke-width="1.6"/>
+</svg>
