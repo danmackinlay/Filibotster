@@ -159,6 +159,10 @@ Live layout, dark theme, projector-friendly:
   `wrangler.toml`), so one `npm run deploy` publishes app + relay at one origin and the
   app's relay URL defaults to `location.origin`. Deployed free-tier via `wrangler`;
   anyone can run their own instance in one command.
+- The relay contract is deliberately trivial, so it ports anywhere: the repo also
+  carries a Netlify Functions port (`netlify/functions/task.mjs` + `netlify.toml`)
+  giving the identical same-origin deployment on Netlify — which is where the public
+  instance lives.
 
 ## 4. Repo layout
 

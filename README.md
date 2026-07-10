@@ -4,8 +4,8 @@ Live rhetorical slop telemetry for the modern podium. Point a microphone at a
 speaker and project a giant vintage meter whose needle swings into the red as
 their recent language reads as AI-generated slop.
 
-**Public instance:** `https://filibotster.YOUR-SUBDOMAIN.workers.dev`
-<!-- TODO: replace with the real URL after first `npm run deploy` -->
+**Public instance:** `https://filibotster.danmackinlay.name`
+<!-- TODO: confirm URL after first Netlify deploy + domain attach -->
 
 See [SPEC.md](SPEC.md) for the full design. Current state: **M1** (dial,
 subtitles, lexical slop meter, replay demo, Pangram client + relay) plus the
@@ -42,29 +42,37 @@ Deploy your own instance (below, ~5 minutes) and point the relay URL at it.
 
 ## Hosting your own
 
-The whole deployment is one Cloudflare Worker: it serves the static app and
-relays `/task` requests to Pangram. Everything fits in Cloudflare's free tier
-(100k requests/day, no card required).
+The deployment is a static site plus one tiny serverless relay at the same
+origin. Two supported targets; both free tiers are ample.
 
-One-time setup:
+### Netlify (what the public instance runs on)
 
-1. Create a free account at [dash.cloudflare.com](https://dash.cloudflare.com/sign-up)
-   — the free plan is fine; skip adding a domain.
-2. `npm install` (repo root — pulls in `wrangler`, Cloudflare's CLI).
-3. `npx wrangler login` — opens a browser OAuth flow.
+[netlify.toml](netlify.toml) builds the app and
+[netlify/functions/task.mjs](netlify/functions/task.mjs) serves the relay at
+`/task` on the same origin — no other config.
 
-Then, for every release:
+1. Push this repo to GitHub (or GitLab etc.).
+2. In Netlify: **Add new site → Import an existing project**, pick the repo.
+   Build settings are read from `netlify.toml`; change nothing, deploy.
+3. Optional custom domain: **Domain management → Add a domain**. If your DNS
+   is already on Netlify this is instant, including the certificate.
 
-```sh
-npm run deploy
-```
+No-git alternative: `npx netlify-cli deploy --prod` from the repo root.
 
-The first deploy asks you to pick a `*.workers.dev` subdomain; the app is then
-live at `https://filibotster.<your-subdomain>.workers.dev`. Update the
-"Public instance" link at the top of this file with the real URL. A custom
-domain can be attached later in the Cloudflare dashboard (Workers → your
-worker → Domains & Routes) if the workers.dev URL is too honest about how this
-was made.
+### Cloudflare Workers
+
+One Worker serves the app as static assets and relays `/task`
+([worker/wrangler.toml](worker/wrangler.toml)).
+
+1. Free account at [dash.cloudflare.com](https://dash.cloudflare.com/sign-up);
+   skip adding a domain.
+2. `npm install` (repo root), then `npx wrangler login`.
+3. `npm run deploy`. The first deploy asks you to claim an account-wide
+   `*.workers.dev` subdomain — pick something generic (your name, not this
+   project's), since every future Worker of yours lives under it:
+   `filibotster.<your-subdomain>.workers.dev`.
+4. Custom domains require the domain's zone to be on Cloudflare — see the
+   commented `routes` block in `worker/wrangler.toml`.
 
 ## Honesty note
 

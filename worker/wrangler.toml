@@ -2,6 +2,13 @@ name = "filibotster"
 main = "src/index.js"
 compatibility_date = "2026-07-01"
 
+# To serve from a subdomain of a domain you own, the domain's zone must be
+# active on Cloudflare (nameservers moved there); then uncomment and deploy —
+# Cloudflare creates the DNS record and TLS cert automatically.
+# routes = [
+#   { pattern = "filibotster.danmackinlay.name", custom_domain = true }
+# ]
+
 # Serve the built SPA from the same Worker: requests matching a file in
 # app/dist are served as static assets; everything else (i.e. /task routes)
 # falls through to the fetch handler in src/index.js.

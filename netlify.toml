@@ -1,0 +1,12 @@
+# Netlify deployment: static app + Pangram relay function at one origin.
+# The relay routes (/task, /task/:id) are declared in the function itself
+# (netlify/functions/task.mjs), so no redirects are needed here.
+
+[build]
+  # cd (rather than --prefix) so npm treats app/ as the project root and the
+  # repo-root .npmrc (a wrangler-only workaround) doesn't apply to this install.
+  command = "cd app && npm ci && npm run build"
+  publish = "app/dist"
+
+[build.environment]
+  NODE_VERSION = "22"
