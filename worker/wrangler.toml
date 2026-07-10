@@ -1,3 +1,9 @@
-name = "filibotster-relay"
+name = "filibotster"
 main = "src/index.js"
 compatibility_date = "2026-07-01"
+
+# Serve the built SPA from the same Worker: requests matching a file in
+# app/dist are served as static assets; everything else (i.e. /task routes)
+# falls through to the fetch handler in src/index.js.
+[assets]
+directory = "../app/dist"

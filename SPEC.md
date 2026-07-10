@@ -155,8 +155,10 @@ Live layout, dark theme, projector-friendly:
 - Routes: `POST /task`, `GET /task/:id` → forward to `https://text.external-api.pangram.com`,
   pass `x-api-key` through, return response with `Access-Control-Allow-Origin: *` (+ handle
   `OPTIONS` preflight). No storage, no logging, no key of its own.
-- Deployed free-tier via `wrangler`; repo includes `worker/` with a one-command deploy so
-  anyone can run their own.
+- The same Worker also serves the built SPA as static assets (`[assets]` in
+  `wrangler.toml`), so one `npm run deploy` publishes app + relay at one origin and the
+  app's relay URL defaults to `location.origin`. Deployed free-tier via `wrangler`;
+  anyone can run their own instance in one command.
 
 ## 4. Repo layout
 

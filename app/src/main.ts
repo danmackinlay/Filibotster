@@ -106,8 +106,10 @@ store.onChange(() => {
 })
 
 // ---------- Pangram scheduler ----------
+// When the app is served by the relay Worker itself (the default deployment),
+// an empty relay URL means "this same origin".
 const pangram = new PangramClient(
-  () => settings.relayUrl,
+  () => settings.relayUrl.trim() || location.origin,
   () => settings.pangramKey,
 )
 let pangramInFlight = false

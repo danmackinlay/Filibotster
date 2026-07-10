@@ -1,0 +1,12 @@
+{
+  "name": "filibotster-root",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix app run build",
+    "dev": "npm --prefix app run dev",
+    "deploy": "npm --prefix app run build && wrangler deploy --config worker/wrangler.toml"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

@@ -43,7 +43,7 @@ export class PangramClient {
   ) {}
 
   get configured(): boolean {
-    return this.getRelayUrl().length > 0 && this.getApiKey().length > 0
+    return this.getApiKey().length > 0
   }
 
   async scan(text: string, { pollMs = 1000, timeoutMs = 20_000 } = {}): Promise<PangramVerdict> {
