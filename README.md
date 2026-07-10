@@ -101,6 +101,16 @@ One Worker serves the app as static assets and relays `/task`
 4. Custom domains require the domain's zone to be on Cloudflare — see the
    commented `routes` block in `worker/wrangler.toml`.
 
+## Spread the slop
+
+A printable A4 flier with a QR code pointing at the public instance, for
+leaving on conference tables and taping to podiums:
+**[flier.pdf](docs/flier.pdf)** (print). Source is
+[docs/flier.html](docs/flier.html) — edit and re-render with headless Chrome
+(`--print-to-pdf`) if the URL or the jokes ever change.
+
+[<img src="docs/flier.webp" alt="Filibotster flier: a cream meter-face poster with QR code linking to filibotster.netlify.app" width="360">](docs/flier.pdf)
+
 ## Honesty note
 
 AI-text detectors are calibrated on written prose, not ASR transcripts of

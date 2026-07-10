@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:wght@600;800&family=Saira+Condensed:wght@600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  * { margin: 0; box-sizing: border-box; }
+  html, body { width: 210mm; height: 297mm; }
+  body {
+    background: #16130f;
+    padding: 9mm;
+    font-family: 'IBM Plex Mono', monospace;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  /* the flier is one giant meter-face card */
+  .face {
+    position: relative;
+    width: 100%; height: 100%;
+    background: radial-gradient(120% 90% at 50% 80%, #ece0c4 0%, #ece0c4 70%, #ddcda6 100%);
+    border: 2.5mm solid #2a2118;
+    border-radius: 9mm;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center;
+    padding: 16mm 14mm 12mm;
+    color: #2a2118;
+  }
+  .screw {
+    position: absolute; width: 9mm; height: 9mm; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #d8bd85, #b08d4f 55%, #6e5527);
+    border: 0.6mm solid #3a2d15;
+  }
+  .screw::after {
+    content: ''; position: absolute; left: 12%; right: 12%; top: 46%;
+    height: 0.8mm; background: #3a2d15; transform: rotate(28deg);
+  }
+  .screw.tl { top: 5mm; left: 5mm; } .screw.tr { top: 5mm; right: 5mm; transform: rotate(64deg); }
+  .screw.bl { bottom: 5mm; left: 5mm; transform: rotate(117deg); } .screw.br { bottom: 5mm; right: 5mm; transform: rotate(9deg); }
+
+  .gauge { width: 52mm; margin-top: 2mm; }
+
+  h1 {
+    font-family: 'Saira Extra Condensed', sans-serif; font-weight: 800;
+    font-size: 27mm; line-height: 0.95; letter-spacing: 0.12em; margin-top: 6mm;
+  }
+  .sub {
+    font-family: 'Saira Condensed', sans-serif; font-weight: 700;
+    font-size: 7.4mm; letter-spacing: 0.42em; margin-top: 3mm; opacity: 0.8;
+  }
+  .rule { width: 60%; border-top: 0.5mm solid rgba(42,33,24,0.35); margin: 8mm 0 7mm; }
+  .pitch {
+    font-size: 4.6mm; line-height: 1.75; max-width: 150mm;
+  }
+  .pitch b { color: #a92c1b; }
+  .ask {
+    font-family: 'Saira Condensed', sans-serif; font-weight: 700;
+    font-size: 6.4mm; letter-spacing: 0.22em; margin-top: 9mm;
+  }
+  .qr-wrap {
+    margin-top: 5mm; background: #fff; padding: 4mm; border: 0.6mm solid #2a2118;
+    border-radius: 2.5mm; box-shadow: 0 2mm 6mm rgba(42,33,24,0.25);
+  }
+  .qr-wrap img { display: block; width: 58mm; height: 58mm; }
+  .url { font-size: 5.4mm; font-weight: 500; margin-top: 4mm; letter-spacing: 0.05em; }
+  .free { font-size: 3.9mm; margin-top: 2.5mm; opacity: 0.65; font-style: italic; }
+  .credit {
+    margin-top: auto; font-size: 3.6mm; opacity: 0.62; letter-spacing: 0.03em;
+    border-top: 0.4mm dashed rgba(42,33,24,0.3); padding-top: 4mm; width: 80%;
+  }
+</style>
+</head>
+<body>
+  <div class="face">
+    <div class="screw tl"></div><div class="screw tr"></div>
+    <div class="screw bl"></div><div class="screw br"></div>
+
+    <svg class="gauge" viewBox="0 0 64 40" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 5 38 A 27 27 0 0 1 40.3 12.3" fill="none" stroke="#2a2118" stroke-width="3"/>
+      <path d="M 40.3 12.3 A 27 27 0 0 1 53.8 22.1" fill="none" stroke="#c9862c" stroke-width="7"/>
+      <path d="M 53.8 22.1 A 27 27 0 0 1 59 38" fill="none" stroke="#a92c1b" stroke-width="7"/>
+      <line x1="32" y1="38" x2="57.6" y2="24.4" stroke="#241c14" stroke-width="4.5" stroke-linecap="round"/>
+      <circle cx="32" cy="38" r="6" fill="#b08d4f" stroke="#3a2d15" stroke-width="1.5"/>
+      <line x1="29" y1="36" x2="35" y2="40" stroke="#3a2d15" stroke-width="1.6"/>
+    </svg>
+
+    <h1>FILIBOTSTER</h1>
+    <div class="sub">SLOP·O·METER · UNIT 01</div>
+
+    <div class="rule"></div>
+
+    <div class="pitch">
+      Is the keynote speaker <b>delving</b>? Is this <b>tapestry</b> of remarks a
+      <b>testament to</b> anything? Point a microphone at the podium and watch a
+      giant vintage meter swing <b>into the red</b> as the rhetoric turns to
+      AI&#8209;flavored slop — live, in real time, with subtitles.
+    </div>
+
+    <div class="ask">AIM IT AT YOUR NEXT KEYNOTE</div>
+
+    <div class="qr-wrap"><img src="qr.png" alt="QR code to filibotster.netlify.app"></div>
+    <div class="url">filibotster.netlify.app</div>
+    <div class="free">free demo mode — no account, no keys, no excuse</div>
+
+    <div class="credit">
+      A nag from the Dan MacKinlay Stable of Variably Well-Considered Enterprises
+      · danmackinlay.name
+    </div>
+  </div>
+</body>
+</html>
