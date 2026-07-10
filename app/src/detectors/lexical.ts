@@ -1,5 +1,4 @@
 import lexicon from '../slop-lexicon.json'
-import type { DetectorResult } from './types'
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
@@ -13,7 +12,9 @@ const PATTERN_RES: RegExp[] = lexicon.patterns.map((p) => new RegExp(p, 'gi'))
 const K = 1.4
 const MIDPOINT = 2.2
 
-export interface LexicalResult extends DetectorResult {
+export interface LexicalResult {
+  /** 0 (artisanal) .. 1 (pure slop) */
+  score: number
   hitsPer100: number
   topHits: string[]
 }
@@ -48,21 +49,5 @@ export function lexicalScore(text: string): LexicalResult {
     .slice(0, 5)
     .map(([k, v]) => (v > 1 ? `${k}×${v}` : k))
 
-  return {
-    score,
-    source: 'lexical',
-    label: labelFor(score),
-    detail: topHits.join(', '),
-    at: Date.now(),
-    hitsPer100: rate,
-    topHits,
-  }
-}
-
-export function labelFor(score: number): string {
-  if (score < 0.2) return 'ARTISANAL'
-  if (score < 0.4) return 'FREE-RANGE'
-  if (score < 0.6) return 'FOCUS-GROUPED'
-  if (score < 0.8) return 'REHEATED'
-  return 'PURE SLOP'
+  return { score, hitsPer100: rate, topHits }
 }

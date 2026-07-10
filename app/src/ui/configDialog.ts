@@ -71,18 +71,17 @@ export function setupConfigDialog(
   // live readout for the sensitivity slider
   const slider = form.elements.namedItem('sensitivity')
   const sliderReadout = dialog.querySelector<HTMLElement>('#sensitivity-readout')
-  if (slider instanceof HTMLInputElement && sliderReadout) {
-    slider.addEventListener('input', () => {
+  const syncSliderReadout = (): void => {
+    if (slider instanceof HTMLInputElement && sliderReadout) {
       sliderReadout.textContent = Number(slider.value).toFixed(2).replace(/0$/, '')
-    })
+    }
   }
+  if (slider instanceof HTMLInputElement) slider.addEventListener('input', syncSliderReadout)
 
   return {
     open() {
       fill()
-      if (slider instanceof HTMLInputElement && sliderReadout) {
-        sliderReadout.textContent = Number(slider.value).toFixed(2).replace(/0$/, '')
-      }
+      syncSliderReadout()
       if (capability) capability.textContent = sttCapabilityNote()
       void populateMics(
         form.elements.namedItem('micDeviceId') as HTMLSelectElement,

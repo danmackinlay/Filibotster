@@ -1,11 +1,11 @@
-export type CloudDetector = 'none' | 'pangram' | 'sapling'
+export type CloudBackend = 'none' | 'pangram' | 'sapling'
 
 export interface Settings {
   sttBackend: 'auto' | 'deepgram' | 'webspeech'
   deepgramKey: string
   micDeviceId: string
   /** Which paid verdict backend drives the needle (lexical is independent). */
-  cloudDetector: CloudDetector
+  cloudDetector: CloudBackend
   pangramKey: string
   saplingKey: string
   relayUrl: string

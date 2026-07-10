@@ -8,6 +8,7 @@ import { TranscriptStore } from './transcript/store'
 import { lexicalScore } from './detectors/lexical'
 import { PangramClient, MIN_WORDS } from './detectors/pangram'
 import { SaplingClient } from './detectors/sapling'
+import { DetectorError, type CloudDetector } from './detectors/types'
 import { Needle } from './detectors/fusion'
 import { createDial } from './ui/dial'
 import { Subtitles } from './ui/subtitles'
@@ -32,7 +33,7 @@ const readoutHeadline = $('#readout-headline')
 const readoutFreshness = $('#readout-freshness')
 const btnPower = $('#btn-power')
 const pillStt = $('#pill-stt')
-const pillPangram = $('#pill-pangram')
+const pillCloud = $('#pill-cloud')
 const banner = $('#banner')
 
 const dial = createDial($('#dial-mount'))
@@ -81,7 +82,7 @@ function powerOff(): void {
   source?.stop()
   // needle spirals down to zero; nothing is scored, no tokens burn
   needle.setLexical(0)
-  needle.setPangram(null)
+  needle.setCloud(null)
   needle.setWpm(0)
   readoutHeadline.textContent = ''
   updateCloudPill()
@@ -152,13 +153,22 @@ const pangram = new PangramClient(
 )
 const sapling = new SaplingClient(() => settings.saplingKey)
 
+// The selected backend, or null when cloud detection is off. Both clients
+// satisfy CloudDetector, so the scheduler below never special-cases which one.
+function activeCloud(): CloudDetector | null {
+  switch (settings.cloudDetector) {
+    case 'pangram':
+      return pangram
+    case 'sapling':
+      return sapling
+    default:
+      return null
+  }
+}
+
 const cloudLabel = (): string => settings.cloudDetector.toUpperCase()
-const cloudConfigured = (): boolean =>
-  settings.cloudDetector === 'pangram'
-    ? pangram.configured
-    : settings.cloudDetector === 'sapling'
-      ? sapling.configured
-      : false
+const cloudConfigured = (): boolean => activeCloud()?.configured ?? false
+// Summed across both clients so switching backend mid-session keeps the tally.
 const cloudCostUsd = (): number => pangram.costUsd + sapling.costUsd
 
 let cloudInFlight = false
@@ -173,22 +183,23 @@ let verdictSpan: { from: number; to: number } | null = null
 
 function updateCloudPill(state?: string, label?: string): void {
   if (state) {
-    pillPangram.dataset.state = state
-    pillPangram.textContent = `${cloudLabel()}: ${label ?? state.toUpperCase()}`
+    pillCloud.dataset.state = state
+    pillCloud.textContent = `${cloudLabel()}: ${label ?? state.toUpperCase()}`
   } else if (settings.cloudDetector === 'none') {
-    pillPangram.dataset.state = 'off'
-    pillPangram.textContent = 'CLOUD: OFF'
+    pillCloud.dataset.state = 'off'
+    pillCloud.textContent = 'CLOUD: OFF'
   } else {
-    pillPangram.dataset.state = 'off'
-    pillPangram.textContent = `${cloudLabel()}: ${cloudConfigured() ? 'IDLE' : 'NO KEY'}`
+    pillCloud.dataset.state = 'off'
+    pillCloud.textContent = `${cloudLabel()}: ${cloudConfigured() ? 'IDLE' : 'NO KEY'}`
   }
 }
 updateCloudPill()
 
 async function maybeScanCloud(): Promise<void> {
   const now = Date.now()
+  const detector = activeCloud()
   if (
-    !cloudConfigured() ||
+    !detector?.configured ||
     !powered ||
     cloudInFlight ||
     now < backoffUntil ||
@@ -203,26 +214,24 @@ async function maybeScanCloud(): Promise<void> {
   readoutFreshness.classList.add('dispatched')
   setTimeout(() => readoutFreshness.classList.remove('dispatched'), 1200)
   updateCloudPill('connecting', 'SCANNING')
-  const backend = settings.cloudDetector
   try {
-    const text = store.windowText(settings.windowWords)
-    const verdict = backend === 'pangram' ? await pangram.scan(text) : await sapling.scan(text)
+    const verdict = await detector.scan(store.windowText(settings.windowWords))
     lastScanAt = Date.now()
     lastScanWords = store.wordCount
     verdictAt = Date.now()
     verdictSpan = dispatchSpan
-    needle.setPangram(calibrate(verdict.score))
-    readoutHeadline.textContent =
-      'headline' in verdict ? verdict.headline : `SAPLING · ${verdict.detail ?? ''}`
+    needle.setCloud(calibrate(verdict.score))
+    // Pangram ships its own headline; Sapling doesn't, so fall back to label + detail.
+    readoutHeadline.textContent = verdict.headline || `${cloudLabel()} · ${verdict.detail ?? ''}`
     updateCloudPill('live', `${Math.round(verdict.score * 100)}`)
     diagnostics.set({
-      pangram: `${Math.round(verdict.score * 100)} · ${verdict.detail ?? ''}`,
+      cloud: `${Math.round(verdict.score * 100)} · ${verdict.detail ?? ''}`,
       rtt: `${verdict.rttMs} ms`,
       creditsUsd: cloudCostUsd(),
     })
   } catch (err) {
     lastScanAt = Date.now()
-    const status = err instanceof Error && 'status' in err ? Number(err.status) : 0
+    const status = err instanceof DetectorError ? err.status : 0
     const msg = err instanceof Error ? err.message : String(err)
     updateCloudPill('error', 'ERROR')
     showBanner(`${cloudLabel()}: ${msg}`)

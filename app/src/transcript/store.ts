@@ -24,10 +24,6 @@ export class TranscriptStore {
     return this.words.length
   }
 
-  sessionText(): string {
-    return this.words.map((x) => x.w).join(' ')
-  }
-
   /** Wall-clock span of the last nWords (what a scan of that window covers). */
   windowSpan(nWords: number): { from: number; to: number } | null {
     if (this.words.length === 0) return null
