@@ -27,6 +27,12 @@ export class Needle {
     return Math.max(this.pangram ?? 0, this.lexical * 0.9)
   }
 
+  /** Jump straight to the current target (demo/screenshot mode). */
+  snap(): void {
+    this.pos = this.target
+    this.vel = 0
+  }
+
   /** Advance physics by dt seconds; returns needle position 0..1. */
   step(dt: number): number {
     const k = 18

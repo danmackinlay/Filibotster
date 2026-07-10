@@ -219,6 +219,21 @@ $('#btn-replay').addEventListener('click', startReplay)
 $('#btn-mic').addEventListener('click', startMic)
 $('#btn-config').addEventListener('click', () => configDialog.open())
 
+// ?demo auto-starts the replay (shareable demo link, headless screenshots);
+// ?demo=slop pre-warms the window with the speech's slop section so the
+// needle heads for the red immediately.
+{
+  const demo = new URLSearchParams(location.search).get('demo')
+  if (demo !== null) {
+    startReplay()
+    if (demo === 'slop') {
+      const slopSection = DEMO_SPEECH.slice(DEMO_SPEECH.indexOf('Furthermore'))
+      store.appendFinal(slopSection.replace(/\s+/g, ' ').trim())
+      needle.snap()
+    }
+  }
+}
+
 if (import.meta.env.DEV) {
   // console handle for poking the pipeline during development
   ;(window as unknown as Record<string, unknown>).__fili = { store, needle, subtitles }

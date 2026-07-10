@@ -1,5 +1,7 @@
 # Filibotster
 
+[![The slop-o-meter reading 90, deep in PURE SLOP territory](docs/preview.webp)](https://filibotster.netlify.app/?demo=slop)
+
 Live rhetorical slop telemetry for the modern podium. Point a microphone at a
 speaker and project a giant vintage meter whose needle swings into the red as
 their recent language reads as AI-generated slop.
@@ -24,6 +26,9 @@ decay from artisanal to pure slop. **● LIVE MIC** uses your browser's built-in
 speech recognition (Chrome recommended) — still no keys.
 
 Keyboard: `f` fullscreen · `space` pause · `d` diagnostics · `r` replay · `,` config.
+
+URL params: `?demo` auto-starts the replay; `?demo=slop` pre-warms the meter
+with the speech's slop section (used for screenshots and instant gratification).
 
 ## Pangram (the real detector)
 
