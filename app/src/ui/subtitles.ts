@@ -6,7 +6,7 @@ export class Subtitles {
   private el: HTMLElement
 
   constructor(container: HTMLElement) {
-    this.el = container
+    this.el = container.querySelector<HTMLElement>('.sub-line') ?? container
   }
 
   addFinal(text: string): void {

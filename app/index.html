@@ -20,6 +20,8 @@
         <span class="pill" id="pill-stt" data-state="off">STT: OFF</span>
         <span class="pill" id="pill-pangram" data-state="off">PANGRAM: OFF</span>
       </div>
+      <a id="link-github" href="https://github.com/danmackinlay/Filibotster" target="_blank"
+         rel="noopener" title="Source on GitHub">GITHUB↗</a>
       <button id="btn-config" class="panel-btn" title="Config (,)">⚙</button>
     </header>
 
@@ -47,7 +49,9 @@
     </aside>
 
     <footer id="subtitles">
-      <div id="subtitle-text"><span class="hint">— transcript will appear here —</span></div>
+      <div id="subtitle-text">
+        <p class="sub-line"><span class="hint">— transcript will appear here —</span></p>
+      </div>
     </footer>
 
     <div id="overlay">
@@ -94,12 +98,14 @@
           <label>Relay URL
             <input type="url" name="relayUrl" placeholder="empty = this site's own relay" />
           </label>
-          <label>Poll interval (seconds)
-            <input type="number" name="pollIntervalS" min="10" max="300" step="5" />
-          </label>
-          <label>Window size (words)
-            <input type="number" name="windowWords" min="80" max="1000" step="10" />
-          </label>
+          <div class="form-row">
+            <label>Poll interval (s)
+              <input type="number" name="pollIntervalS" min="10" max="300" step="5" />
+            </label>
+            <label>Window (words)
+              <input type="number" name="windowWords" min="80" max="1000" step="10" />
+            </label>
+          </div>
         </fieldset>
 
         <fieldset>

@@ -60,9 +60,15 @@ body::before {
 #masthead {
   display: flex;
   align-items: baseline;
-  gap: 1.2rem;
+  flex-wrap: wrap;
+  row-gap: 0.3rem;
+  column-gap: 1.2rem;
   padding: 0.7rem 1.4rem 0.55rem;
   border-bottom: 1px solid color-mix(in srgb, var(--brass) 45%, transparent);
+}
+
+.brand-sub {
+  white-space: nowrap;
 }
 
 .brand {
@@ -115,6 +121,22 @@ body::before {
   50% {
     opacity: 0.35;
   }
+}
+
+#link-github {
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  padding: 0.22rem 0.6rem;
+  border: 1px solid rgba(236, 224, 196, 0.25);
+  border-radius: 999px;
+  color: var(--cream);
+  text-decoration: none;
+  opacity: 0.7;
+}
+#link-github:hover {
+  opacity: 1;
+  border-color: var(--brass);
+  color: var(--brass);
 }
 
 .panel-btn {
@@ -249,14 +271,25 @@ body::before {
 
 /* ---------- subtitles ---------- */
 #subtitles {
+  flex: 0 0 auto;
   padding: 0.8rem 8vw 1.3rem;
   text-align: center;
-  min-height: 4.6rem;
 }
 
+/* Fixed three-line box so text wrapping never reflows the dial above it;
+   newest text is bottom-anchored, older lines clip off the top. */
 #subtitle-text {
   font-size: clamp(0.9rem, 2.2vh, 1.25rem);
   line-height: 1.55;
+  height: calc(3 * 1.55em);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.sub-line {
+  margin: 0;
   text-wrap: balance;
 }
 
@@ -432,9 +465,10 @@ body::before {
   color: var(--cream);
   border: 1px solid color-mix(in srgb, var(--brass) 55%, transparent);
   border-radius: 12px;
-  padding: 1.6rem 1.8rem;
+  padding: 1.6rem 1.8rem 0;
   width: min(30rem, 92vw);
   max-height: 88vh;
+  max-height: 88dvh;
   overflow-y: auto;
   font-family: 'IBM Plex Mono', monospace;
   font-size: 0.75rem;
@@ -479,6 +513,21 @@ body::before {
   align-items: center;
 }
 
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 0.8rem;
+}
+
+/* keep paired inputs baseline-aligned even when one label wraps */
+#config-dialog .form-row label {
+  display: flex;
+  flex-direction: column;
+}
+#config-dialog .form-row label input {
+  margin-top: auto;
+}
+
 #config-dialog input:not([type='checkbox']),
 #config-dialog select {
   display: block;
@@ -506,10 +555,16 @@ body::before {
   margin-bottom: 1rem;
 }
 
+/* Sticky footer: always visible while the form scrolls behind it. */
 .config-actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.7rem;
+  position: sticky;
+  bottom: 0;
+  background: var(--panel-2);
+  border-top: 1px solid rgba(236, 224, 196, 0.15);
+  padding: 0.9rem 0 1.2rem;
 }
 
 .config-actions button {
