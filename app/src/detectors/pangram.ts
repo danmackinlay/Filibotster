@@ -24,6 +24,7 @@ interface TaskResponse {
     confidence: string
     start_index: number
     end_index: number
+    word_count?: number
   }>
 }
 
@@ -71,7 +72,21 @@ export class PangramClient {
       if (body.stage === 'STAGE_SUCCESS') {
         const fractionAi = body.fraction_ai ?? 0
         const fractionAiAssisted = body.fraction_ai_assisted ?? 0
-        const score = Math.min(1, fractionAi + 0.5 * fractionAiAssisted)
+        // The fractions are proportions of text that crossed Pangram's
+        // classification threshold — borderline speech collapses to 0. The
+        // per-window ai_assistance_score is continuous, so a length-weighted
+        // mean of it keeps the needle alive when Pangram declines to convict;
+        // take the max so a confident verdict still pegs the dial.
+        const fractionScore = Math.min(1, fractionAi + 0.5 * fractionAiAssisted)
+        const wins = body.windows ?? []
+        const words = (w: { word_count?: number; text: string }) =>
+          w.word_count ?? w.text.split(/\s+/).length
+        const totalWords = wins.reduce((n, w) => n + words(w), 0)
+        const meanAssist =
+          totalWords > 0
+            ? wins.reduce((s, w) => s + w.ai_assistance_score * words(w), 0) / totalWords
+            : 0
+        const score = Math.max(fractionScore, meanAssist)
         return {
           score,
           source: 'pangram',

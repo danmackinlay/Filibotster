@@ -8,6 +8,9 @@ export interface Settings {
   windowWords: number
   lexicalEnabled: boolean
   pangramEnabled: boolean
+  /** Needle calibration: detector scores are raised to 1/sensitivity.
+   *  1 = honest, >1 = more dramatic, <1 = stricter. */
+  sensitivity: number
   replayWpm: number
 }
 
@@ -21,6 +24,7 @@ export const DEFAULTS: Settings = {
   windowWords: 250,
   lexicalEnabled: true,
   pangramEnabled: true,
+  sensitivity: 1,
   replayWpm: 170,
 }
 

@@ -63,12 +63,25 @@ export function setupConfigDialog(
     s.replayWpm = clamp(Number(data.get('replayWpm')), 60, 400, 170)
     s.lexicalEnabled = data.get('lexicalEnabled') === 'on'
     s.pangramEnabled = data.get('pangramEnabled') === 'on'
+    s.sensitivity = clamp(Number(data.get('sensitivity')), 0.5, 2.5, 1)
     onSave(s)
   })
+
+  // live readout for the sensitivity slider
+  const slider = form.elements.namedItem('sensitivity')
+  const sliderReadout = dialog.querySelector<HTMLElement>('#sensitivity-readout')
+  if (slider instanceof HTMLInputElement && sliderReadout) {
+    slider.addEventListener('input', () => {
+      sliderReadout.textContent = Number(slider.value).toFixed(2).replace(/0$/, '')
+    })
+  }
 
   return {
     open() {
       fill()
+      if (slider instanceof HTMLInputElement && sliderReadout) {
+        sliderReadout.textContent = Number(slider.value).toFixed(2).replace(/0$/, '')
+      }
       if (capability) capability.textContent = sttCapabilityNote()
       void populateMics(
         form.elements.namedItem('micDeviceId') as HTMLSelectElement,

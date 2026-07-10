@@ -92,6 +92,12 @@ function startMic(): void {
   }
 }
 
+// ---------- calibration ----------
+// The trim screw: raw detector scores are raised to 1/sensitivity before
+// driving the needle. 1 = honest; >1 amplifies weak evidence.
+const calibrate = (raw: number): number =>
+  Math.pow(Math.max(0, Math.min(1, raw)), 1 / settings.sensitivity)
+
 // ---------- lexical detector ----------
 store.onChange(() => {
   if (!settings.lexicalEnabled) {
@@ -99,7 +105,7 @@ store.onChange(() => {
     return
   }
   const result = lexicalScore(store.windowText(settings.windowWords))
-  needle.setLexical(result.score)
+  needle.setLexical(calibrate(result.score))
   diagnostics.set({
     lexical: `${Math.round(result.score * 100)} · ${result.hitsPer100.toFixed(1)}/100w`,
     hits: result.topHits.join(', '),
@@ -151,7 +157,7 @@ async function maybeScanPangram(): Promise<void> {
     const verdict = await pangram.scan(store.windowText(settings.windowWords))
     lastScanAt = Date.now()
     lastScanWords = store.wordCount
-    needle.setPangram(verdict.score)
+    needle.setPangram(calibrate(verdict.score))
     readoutHeadline.textContent = verdict.headline
     updatePangramPill('live', `${Math.round(verdict.score * 100)}`)
     diagnostics.set({

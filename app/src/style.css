@@ -548,6 +548,13 @@ body::before {
   border-color: var(--brass);
 }
 
+#config-dialog input[type='range'] {
+  padding: 0;
+  border: none;
+  background: transparent;
+  accent-color: var(--brass);
+}
+
 .config-note {
   font-size: 0.62rem;
   opacity: 0.55;

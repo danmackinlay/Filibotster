@@ -130,6 +130,13 @@
           <legend>Detectors</legend>
           <label class="check"><input type="checkbox" name="lexicalEnabled" /> Lexical slop meter (free)</label>
           <label class="check"><input type="checkbox" name="pangramEnabled" /> Pangram (uses credits)</label>
+          <label>Needle sensitivity — <span id="sensitivity-readout">1.0</span>
+            <input type="range" name="sensitivity" min="0.5" max="2.5" step="0.25" list="sensitivity-ticks" />
+            <datalist id="sensitivity-ticks"><option value="1"></option></datalist>
+          </label>
+          <p class="config-note">The calibration screw. 1.0 reports detector scores
+            honestly; higher values swing the needle harder on weak evidence
+            (it is a satire instrument; nobody is under oath).</p>
         </fieldset>
 
         <fieldset>
