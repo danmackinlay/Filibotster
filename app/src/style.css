@@ -67,10 +67,6 @@ body::before {
   border-bottom: 1px solid color-mix(in srgb, var(--brass) 45%, transparent);
 }
 
-.brand-sub {
-  white-space: nowrap;
-}
-
 .brand {
   font-family: 'Saira Extra Condensed', sans-serif;
   font-weight: 800;
@@ -80,6 +76,7 @@ body::before {
 }
 
 .brand-sub {
+  white-space: nowrap;
   font-size: 0.72rem;
   letter-spacing: 0.28em;
   opacity: 0.65;
@@ -110,19 +107,45 @@ body::before {
   gap: 0.6rem;
 }
 
+/* Every masthead lozenge — status pills, the GitHub link, the power and
+   settings buttons — is this shape. Only their weight and states differ. */
+.chip {
+  border: 1px solid rgba(236, 224, 196, 0.25);
+  border-radius: 999px;
+  padding: 0.28rem 0.75rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  color: var(--cream);
+  text-align: center;
+  text-decoration: none;
+}
+
+/* Interactive chips read brighter and pick up a brass edge on hover. */
+.chip-btn {
+  font-family: 'Saira Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.14em;
+  padding: 0.3rem 0.9rem;
+  background: none;
+  border-color: rgba(236, 224, 196, 0.35);
+  cursor: pointer;
+  opacity: 0.95;
+}
+
+.chip-btn:hover,
+#link-github:hover {
+  opacity: 1;
+  border-color: var(--brass);
+}
+
 /* Fixed width, sized to the longest label either pill can show
    ("MIC: RECONNECTING" / "PANGRAM: SCANNING"). Status text changes on its own
    as speech-to-text connects, and a pill that resized would shove the whole
    masthead sideways mid-talk. Matching widths also read as a pair of gauges. */
 .pill {
-  font-size: 0.78rem;
-  letter-spacing: 0.12em;
-  padding: 0.28rem 0.75rem;
-  border: 1px solid rgba(236, 224, 196, 0.25);
-  border-radius: 999px;
   opacity: 0.85;
   min-width: 11.5rem;
-  text-align: center;
 }
 
 .pill[data-state='live'] {
@@ -149,20 +172,10 @@ body::before {
 }
 
 #btn-power {
-  font-family: 'Saira Condensed', sans-serif;
-  font-weight: 700;
-  font-size: 0.9rem;
   letter-spacing: 0.16em;
-  padding: 0.32rem 1rem;
   /* Sized for "○ STANDBY" so toggling to the shorter "● LIVE" cannot resize the
      button and re-wrap the masthead under the user's cursor. */
   min-width: 7.4rem;
-  text-align: center;
-  border-radius: 999px;
-  cursor: pointer;
-  background: transparent;
-  border: 1px solid rgba(236, 224, 196, 0.35);
-  color: var(--cream);
   opacity: 0.7;
 }
 
@@ -173,42 +186,11 @@ body::before {
   box-shadow: 0 0 12px rgba(127, 174, 98, 0.25);
 }
 
-#btn-power:hover {
-  border-color: var(--brass);
-}
-
 #link-github {
-  font-size: 0.78rem;
-  letter-spacing: 0.12em;
-  padding: 0.28rem 0.75rem;
-  border: 1px solid rgba(236, 224, 196, 0.25);
-  border-radius: 999px;
-  color: var(--cream);
-  text-decoration: none;
   opacity: 0.8;
 }
 #link-github:hover {
-  opacity: 1;
-  border-color: var(--brass);
   color: var(--brass);
-}
-
-.panel-btn {
-  background: none;
-  border: 1px solid rgba(236, 224, 196, 0.35);
-  border-radius: 999px;
-  color: var(--cream);
-  font-family: 'Saira Condensed', sans-serif;
-  font-weight: 700;
-  font-size: 0.9rem;
-  letter-spacing: 0.14em;
-  padding: 0.3rem 0.9rem;
-  cursor: pointer;
-  opacity: 0.95;
-}
-.panel-btn:hover {
-  opacity: 1;
-  border-color: var(--brass);
 }
 
 /* ---------- dial ---------- */

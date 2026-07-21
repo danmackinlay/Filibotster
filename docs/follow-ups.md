@@ -8,20 +8,23 @@ but worth knowing" list so the reasoning isn't lost.
 ## Deferred refactors
 
 ### Extract the cloud scheduler out of `main.ts`
-`app/src/main.ts` is the composition root (~350 lines) and mostly fine, but the
-cloud-detector scheduler is the one chunk with real hidden complexity:
-`maybeScanCloud()` plus the module-level `cloudInFlight` / `lastScanAt` /
-`lastScanWords` / `backoffUntil` / `dispatchSpan` / `verdictAt` / `verdictSpan`
-state and the `setInterval` that drives it (~90 lines).
+**Partially done (2026-07-21).** The decision *whether* to spend a credit is now
+a pure function in `app/src/detectors/schedule.ts` (`shouldScan`), covered by
+`schedule.test.ts`. That was the part where a mistake costs real money, so it
+was worth pulling out first and is the cheap half of this item.
+
+Still outstanding: `main.ts` is the composition root (~400 lines, 15
+module-level mutable bindings) and the scheduler's *state* still lives there —
+`cloudInFlight` / `lastScanAt` / `lastScanWords` / `backoffUntil` /
+`dispatchSpan` / `verdictAt` / `verdictSpan` plus the `setInterval` driving
+`maybeScanCloud()`.
 
 A `CloudScheduler` class owning that state — constructed with the active
 detector, a settings getter, the `Needle`, and a small "ports" object of UI
 callbacks (pill, freshness readout, diagnostics, banner) — would shrink
-`main.ts` and make the scan/backoff logic unit-testable in isolation.
-
-Held off because it's tightly coupled to UI updates and there are **no tests**
-to catch a regression (see below). Medium effort, medium risk. Do it *with* a
-couple of tests around the throttle/backoff conditions, not before.
+`main.ts` further. Still tightly coupled to UI updates; medium effort, medium
+risk. `shouldScan` is already extracted, so the remaining work is the state
+machine and its UI side effects.
 
 ## Deliberate non-changes (look like debt, aren't)
 
@@ -36,16 +39,15 @@ If one changes, hand-mirror the change to the other.
 ## Latent features (dead code was removed — here's how to revive it)
 
 ### Slop label in the readout for lexical-only mode
-The tidy removed `labelFor()` (the `ARTISANAL`→`PURE SLOP` score→label
-function) because it only ever fed a `DetectorResult.label` field that nothing
-rendered — the labels you see come from `ZONE_LABELS` in `app/src/ui/dial.ts`.
+**Done (2026-07-21.)** Became urgent when `cloudDetector` started defaulting to
+`'none'`: `#readout-headline` is only written on a cloud verdict, so the default
+user got a permanently blank line that still reserved `min-height: 1.2em`.
 
-But in lexical-only mode (no cloud key) the `#readout-headline` element sits
-blank, and a score→label string is the obvious thing to put there. To revive:
-re-add a `labelFor(score)` (ideally sourcing the five strings from a shared
-constant that `dial.ts` also consumes, to avoid re-duplicating the vocabulary)
-and set `readoutHeadline.textContent` from it in the lexical `store.onChange`
-handler in `main.ts`.
+`app/src/slop-labels.ts` now owns the five strings as `SLOP_LABELS` plus
+`labelFor(score)`; `ui/dial.ts` maps them onto its own `ZONE_ANGLES` and
+`main.ts`'s `renderHeadline()` fills the headline from `needle.value` — but only
+when no cloud detector is configured, so a real verdict still owns that line.
+Covered by `slop-labels.test.ts`.
 
 ### Per-window / per-sentence transcript tinting (SPEC §3.4)
 The parsing for this was removed as dead (`ScoredWindow`,
@@ -65,7 +67,10 @@ don't carry the plumbing ahead of the feature again.
   `@typescript-eslint` (esp. `no-unused-vars` on types is still limited, but
   rules like `no-explicit-any` and consistent-imports would help) is the
   natural next guard if this keeps recurring.
-- **No tests.** Fine for the UI glue; the two spots with logic worth pinning are
-  the lexical scorer (`app/src/detectors/lexical.ts` — pure function, trivial to
-  test) and the scheduler throttle/backoff conditions (see above). Vitest drops
-  into a Vite project with near-zero config.
+- **Tests: started (2026-07-21).** Vitest is wired up (`npm --prefix app test`,
+  no config file needed). 21 tests cover the lexical scorer
+  (`detectors/lexical.test.ts`), the scan gate (`detectors/schedule.test.ts`)
+  and the label bands (`slop-labels.test.ts`). Still untested by design: the UI
+  glue in `main.ts` and the two network clients. Note the lexical tests assert
+  *direction and shape*, not exact magnitudes, so `slop-lexicon.json` stays
+  tunable without breaking the build.

@@ -14,7 +14,7 @@ interface TaskResponse {
   }>
 }
 
-export const CREDIT_USD = 0.05
+const CREDIT_USD = 0.05
 export const MIN_WORDS = 80
 
 /**

@@ -2,6 +2,7 @@
  * The slop-o-meter: a vintage broadcast-VU-style gauge rendered as SVG.
  * Score 0..1 maps to needle angle -90°..+90°.
  */
+import { SLOP_LABELS } from '../slop-labels'
 
 const CX = 500
 const CY = 560
@@ -16,13 +17,8 @@ function arcPath(r: number, a0: number, a1: number): string {
   return `M ${px(r, a0)} ${py(r, a0)} A ${r} ${r} 0 ${large} 1 ${px(r, a1)} ${py(r, a1)}`
 }
 
-const ZONE_LABELS: Array<[number, string]> = [
-  [-72, 'ARTISANAL'],
-  [-36, 'FREE-RANGE'],
-  [0, 'FOCUS-GROUPED'],
-  [36, 'REHEATED'],
-  [72, 'PURE SLOP'],
-]
+/** Where each SLOP_LABELS entry sits on the face, in the same order. */
+const ZONE_ANGLES = [-72, -36, 0, 36, 72]
 
 export interface Dial {
   /** pos: needle position 0..1 */
@@ -47,10 +43,11 @@ export function createDial(mount: HTMLElement): Dial {
   }
 
   let zoneLabels = ''
-  for (const [a, label] of ZONE_LABELS) {
+  SLOP_LABELS.forEach((label, i) => {
+    const a = ZONE_ANGLES[i]
     zoneLabels += `<text x="${px(330, a)}" y="${py(330, a)}" class="dial-zone-label"
       transform="rotate(${a} ${px(330, a)} ${py(330, a)})">${label}</text>`
-  }
+  })
 
   mount.innerHTML = `
   <svg viewBox="0 0 1000 640" xmlns="${NS}" id="dial-svg" role="img"

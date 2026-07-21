@@ -1,4 +1,4 @@
-export interface DiagFields {
+interface DiagFields {
   wpm?: number
   words?: number
   lexical?: string

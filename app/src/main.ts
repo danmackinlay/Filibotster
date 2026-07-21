@@ -9,11 +9,13 @@ import { lexicalScore } from './detectors/lexical'
 import { PangramClient, MIN_WORDS } from './detectors/pangram'
 import { SaplingClient } from './detectors/sapling'
 import { DetectorError, type CloudDetector } from './detectors/types'
+import { shouldScan } from './detectors/schedule'
 import { Needle } from './detectors/fusion'
 import { createDial } from './ui/dial'
 import { Subtitles } from './ui/subtitles'
 import { Diagnostics } from './ui/diagnostics'
 import { setupConfigDialog } from './ui/configDialog'
+import { labelFor } from './slop-labels'
 import { DEMO_SPEECH } from './demo-speech'
 
 // ---------- state ----------
@@ -201,17 +203,19 @@ updateCloudPill()
 async function maybeScanCloud(): Promise<void> {
   const now = Date.now()
   const detector = activeCloud()
-  if (
-    !detector?.configured ||
-    !powered ||
-    cloudInFlight ||
-    now < backoffUntil ||
-    now - lastScanAt < settings.pollIntervalS * 1000 ||
-    store.wordCount < MIN_WORDS ||
-    store.wordCount - lastScanWords < 20
-  ) {
-    return
-  }
+  const gateOpen = shouldScan({
+    configured: detector?.configured ?? false,
+    powered,
+    inFlight: cloudInFlight,
+    now,
+    backoffUntil,
+    lastScanAt,
+    pollIntervalMs: settings.pollIntervalS * 1000,
+    minWords: MIN_WORDS,
+    wordCount: store.wordCount,
+    wordCountAtLastScan: lastScanWords,
+  })
+  if (!detector || !gateOpen) return
   cloudInFlight = true
   dispatchSpan = store.windowSpan(settings.windowWords)
   readoutFreshness.classList.add('dispatched')
@@ -286,20 +290,18 @@ freshnessAction.className = 'freshness-action'
 freshnessAction.textContent = 'add a detector key'
 freshnessAction.addEventListener('click', () => configDialog.open())
 
-// Re-rendering identical text 2×/s would restart the CSS transition and fight
-// the user's selection, so every write goes through here.
+// This runs 2×/s. Without the guard the plain-text branches would replace the
+// text node every tick (dropping any selection the user has made), and the
+// action branch would re-attach the button mid-click.
 let lastFreshness = ''
-function setFreshness(text: string): void {
-  if (lastFreshness === text) return
-  lastFreshness = text
-  readoutFreshness.textContent = text
-}
+let lastFreshnessHadAction = false
 
-function setFreshnessWithAction(prefix: string): void {
-  const key = ` action:${prefix}`
-  if (lastFreshness === key) return
-  lastFreshness = key
-  readoutFreshness.replaceChildren(document.createTextNode(prefix), freshnessAction)
+function setFreshness(text: string, withAction = false): void {
+  if (lastFreshness === text && lastFreshnessHadAction === withAction) return
+  lastFreshness = text
+  lastFreshnessHadAction = withAction
+  if (withAction) readoutFreshness.replaceChildren(document.createTextNode(text), freshnessAction)
+  else readoutFreshness.textContent = text
 }
 
 function renderFreshness(): void {
@@ -308,7 +310,7 @@ function renderFreshness(): void {
     return
   }
   if (!cloudConfigured()) {
-    setFreshnessWithAction('free slop-word meter only — ')
+    setFreshness('free slop-word meter only — ', true)
     return
   }
   if (cloudInFlight && dispatchSpan) {
@@ -324,12 +326,22 @@ function renderFreshness(): void {
   setFreshness('warming up — needs a few more words before the first scan')
 }
 
+// The cloud verdict owns the headline whenever a detector is configured
+// (maybeScanCloud writes its own wording there). In the free default it would
+// otherwise sit permanently blank, so name the zone the needle is pointing at.
+function renderHeadline(): void {
+  if (cloudConfigured()) return
+  const text = powered ? labelFor(needle.value) : ''
+  if (readoutHeadline.textContent !== text) readoutHeadline.textContent = text
+}
+
 setInterval(() => {
   if (document.hidden) stepAndRender(performance.now(), 2)
   needle.setWpm(powered ? store.wpm() : 0)
   diagnostics.set({ wpm: store.wpm() })
   diagnostics.pushScore(needle.value)
   renderFreshness()
+  renderHeadline()
 }, 500)
 
 // ---------- banner ----------

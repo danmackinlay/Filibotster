@@ -9,7 +9,7 @@ import { DetectorError } from './types'
  * verdict-smoothed than Pangram.
  */
 
-export const USD_PER_KCHAR = 0.005
+const USD_PER_KCHAR = 0.005
 
 export class SaplingClient implements CloudDetector {
   private charsSent = 0
