@@ -7,7 +7,7 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-  <meta name="description" content="Live rhetorical slop telemetry for the modern podium: speech in, needle into the red." />
+  <meta name="description" content="Point a microphone at a speaker and watch a giant vintage meter swing into the red as their words start sounding AI-generated." />
   <meta property="og:title" content="FILIBOTSTER — rhetorical slop telemetry" />
   <meta property="og:description" content="A live slop meter for the podium: speech in, needle into the red. Powered by Pangram + a lexicon of shame." />
   <meta property="og:image" content="https://filibotster.netlify.app/social-card.png" />
@@ -29,13 +29,15 @@
       <div class="brand">FILIBOTSTER</div>
       <div class="brand-sub">RHETORICAL SLOP TELEMETRY · UNIT 01</div>
       <button id="btn-power" data-on="false" title="Power (space)">○ STANDBY</button>
-      <div id="status-pills">
-        <span class="pill" id="pill-stt" data-state="off">STT: OFF</span>
-        <span class="pill" id="pill-cloud" data-state="off">CLOUD: OFF</span>
+      <div id="masthead-right">
+        <div id="status-pills">
+          <span class="pill" id="pill-stt" data-state="off">MIC: OFF</span>
+          <span class="pill" id="pill-cloud" data-state="off">DETECTOR: OFF</span>
+        </div>
+        <a id="link-github" href="https://github.com/danmackinlay/Filibotster" target="_blank"
+           rel="noopener" title="Source on GitHub">GITHUB↗</a>
+        <button id="btn-config" class="panel-btn" title="Settings (s)">⚙ SETTINGS</button>
       </div>
-      <a id="link-github" href="https://github.com/danmackinlay/Filibotster" target="_blank"
-         rel="noopener" title="Source on GitHub">GITHUB↗</a>
-      <button id="btn-config" class="panel-btn" title="Config (,)">⚙</button>
     </header>
 
     <section id="dial-stage">
@@ -71,17 +73,28 @@
     <div id="overlay">
       <div class="overlay-card">
         <div class="overlay-brand">FILIBOTSTER</div>
-        <p class="overlay-tag">Live rhetorical slop telemetry for the modern podium.</p>
+        <p class="overlay-tag">Point a microphone at a speaker. The needle swings into
+          the red as their words start sounding AI-generated.</p>
         <div class="overlay-actions">
-          <button id="btn-replay" class="big-btn">▶ REPLAY DEMO</button>
-          <button id="btn-mic" class="big-btn secondary">● LIVE MIC</button>
+          <button id="btn-replay" class="big-btn">▶ WATCH DEMO</button>
+          <button id="btn-mic" class="big-btn secondary">● USE MY MIC</button>
         </div>
         <p class="overlay-fine">
-          Demo mode needs no keys. Live mic uses your browser's speech recognition,
-          or a Deepgram key from config. Cloud slop verdicts need a Pangram or
-          Sapling key (config ⚙).
+          <b>No keys needed for the demo.</b> Live mic works best in Chrome; API keys
+          for better transcription and a real AI detector go in ⚙ SETTINGS.
         </p>
-        <p class="overlay-fine dim">f fullscreen · space power on/off · d diagnostics · , config</p>
+        <p class="overlay-fine">
+          A satire instrument: AI detectors are calibrated on written prose, not
+          speech, so read the needle as a joke rather than a verdict.
+          <a href="https://github.com/danmackinlay/Filibotster#filibotster" target="_blank"
+             rel="noopener">Full disclaimer ↗</a>
+        </p>
+        <p class="overlay-fine keys">
+          <span class="key-hint"><kbd>s</kbd> settings</span>
+          <span class="key-hint"><kbd>f</kbd> fullscreen</span>
+          <span class="key-hint"><kbd>space</kbd> power</span>
+          <span class="key-hint"><kbd>d</kbd> diagnostics</span>
+        </p>
         <p class="overlay-credit">
           A nag from the <a href="https://danmackinlay.name" target="_blank" rel="noopener">Dan
           MacKinlay Stable of Variably Well-Considered Enterprises</a>
@@ -93,20 +106,25 @@
 
     <dialog id="config-dialog">
       <form method="dialog" id="config-form">
-        <h2>CONFIGURATION</h2>
+        <h2>SETTINGS</h2>
+
+        <p class="config-note">Filibotster works with no keys at all — these just make
+          it work better. Everything here is stored in this browser only.</p>
 
         <fieldset>
-          <legend>Speech-to-text</legend>
-          <label>Backend
+          <legend>Microphone &amp; transcription</legend>
+          <label>How to transcribe
             <select name="sttBackend">
-              <option value="auto">Auto (Deepgram if key, else Web Speech)</option>
-              <option value="deepgram">Deepgram</option>
-              <option value="webspeech">Web Speech API (free)</option>
+              <option value="auto">Automatic — Deepgram if you have a key</option>
+              <option value="deepgram">Deepgram — needs a key, works anywhere</option>
+              <option value="webspeech">Browser's own recogniser — free, Chrome only</option>
             </select>
           </label>
-          <label>Deepgram API key
+          <label>Deepgram API key — optional, about $0.35/hour
             <input type="password" name="deepgramKey" placeholder="optional" autocomplete="off" />
           </label>
+          <p class="config-note">No card needed, and new accounts get $200 of free credit —
+            <a href="https://console.deepgram.com/signup" target="_blank" rel="noopener">sign up for a Deepgram key ↗</a></p>
           <label>Microphone (Deepgram only)
             <select name="micDeviceId">
               <option value="">System default</option>
@@ -116,36 +134,40 @@
         </fieldset>
 
         <fieldset>
-          <legend>Cloud slop detector</legend>
-          <label>Backend
+          <legend>AI detector (optional — these cost money)</legend>
+          <label>Which detector
             <select name="cloudDetector">
-              <option value="none">None (free lexical meter only)</option>
-              <option value="pangram">Pangram — strictest, $0.05/scan, via relay</option>
-              <option value="sapling">Sapling — livelier, ~7× cheaper, no relay</option>
+              <option value="none">Off — use the free built-in slop-word meter</option>
+              <option value="pangram">Pangram — strictest verdicts, about $9/hour</option>
+              <option value="sapling">Sapling — livelier needle, about $1.22/hour</option>
             </select>
           </label>
           <label>Pangram API key
             <input type="password" name="pangramKey" placeholder="optional" autocomplete="off" />
           </label>
+          <p class="config-note"><a href="https://www.pangram.com/pricing" target="_blank" rel="noopener">Buy
+            Pangram credits and get a key ↗</a></p>
           <label>Sapling API key
             <input type="password" name="saplingKey" placeholder="optional" autocomplete="off" />
           </label>
-          <label>Relay URL (Pangram only)
+          <p class="config-note"><a href="https://sapling.ai/api" target="_blank" rel="noopener">Sign
+            up for a Sapling key ↗</a></p>
+          <label>Relay URL (advanced, Pangram only)
             <input type="url" name="relayUrl" placeholder="empty = this site's own relay" />
           </label>
           <div class="form-row">
-            <label>Poll interval (s)
+            <label>Scan every (seconds)
               <input type="number" name="pollIntervalS" min="10" max="300" step="5" />
             </label>
-            <label>Window (words)
+            <label>Words per scan
               <input type="number" name="windowWords" min="80" max="1000" step="10" />
             </label>
           </div>
         </fieldset>
 
         <fieldset>
-          <legend>Detectors</legend>
-          <label class="check"><input type="checkbox" name="lexicalEnabled" /> Lexical slop meter (free)</label>
+          <legend>Free meter &amp; calibration</legend>
+          <label class="check"><input type="checkbox" name="lexicalEnabled" /> Built-in slop-word meter (free, continuous)</label>
           <label>Needle sensitivity — <span id="sensitivity-readout">1.0</span>
             <input type="range" name="sensitivity" min="0.5" max="2.5" step="0.25" list="sensitivity-ticks" />
             <datalist id="sensitivity-ticks"><option value="1"></option></datalist>

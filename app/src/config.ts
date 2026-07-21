@@ -22,7 +22,9 @@ export const DEFAULTS: Settings = {
   sttBackend: 'auto',
   deepgramKey: '',
   micDeviceId: '',
-  cloudDetector: 'pangram',
+  // Off by default: a first run should read "DETECTOR: OFF", not a vendor name
+  // and a per-hour price, before the user has opted into paying for anything.
+  cloudDetector: 'none',
   pangramKey: '',
   saplingKey: '',
   relayUrl: '',

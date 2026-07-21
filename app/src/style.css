@@ -62,7 +62,7 @@ body::before {
   align-items: baseline;
   flex-wrap: wrap;
   row-gap: 0.3rem;
-  column-gap: 1.2rem;
+  column-gap: 1rem;
   padding: 0.7rem 1.4rem 0.55rem;
   border-bottom: 1px solid color-mix(in srgb, var(--brass) 45%, transparent);
 }
@@ -80,24 +80,49 @@ body::before {
 }
 
 .brand-sub {
-  font-size: 0.62rem;
+  font-size: 0.72rem;
   letter-spacing: 0.28em;
-  opacity: 0.55;
+  opacity: 0.65;
+}
+
+/* The nameplate is decoration and eats ~355px. Below this the controls need the
+   room, and dropping it keeps the masthead one row instead of wrapping it.
+   Projectors and big screens still get the full instrument branding. */
+@media (max-width: 1360px) {
+  .brand-sub {
+    display: none;
+  }
+}
+
+/* Right-hand cluster stays together, so a narrow window wraps it as one
+   right-aligned block instead of orphaning the settings button on the left. */
+#masthead-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.6rem;
 }
 
 #status-pills {
-  margin-left: auto;
   display: flex;
   gap: 0.6rem;
 }
 
+/* Fixed width, sized to the longest label either pill can show
+   ("MIC: RECONNECTING" / "PANGRAM: SCANNING"). Status text changes on its own
+   as speech-to-text connects, and a pill that resized would shove the whole
+   masthead sideways mid-talk. Matching widths also read as a pair of gauges. */
 .pill {
-  font-size: 0.62rem;
+  font-size: 0.78rem;
   letter-spacing: 0.12em;
-  padding: 0.22rem 0.6rem;
+  padding: 0.28rem 0.75rem;
   border: 1px solid rgba(236, 224, 196, 0.25);
   border-radius: 999px;
-  opacity: 0.75;
+  opacity: 0.85;
+  min-width: 11.5rem;
+  text-align: center;
 }
 
 .pill[data-state='live'] {
@@ -126,9 +151,13 @@ body::before {
 #btn-power {
   font-family: 'Saira Condensed', sans-serif;
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   letter-spacing: 0.16em;
-  padding: 0.28rem 0.9rem;
+  padding: 0.32rem 1rem;
+  /* Sized for "○ STANDBY" so toggling to the shorter "● LIVE" cannot resize the
+     button and re-wrap the masthead under the user's cursor. */
+  min-width: 7.4rem;
+  text-align: center;
   border-radius: 999px;
   cursor: pointer;
   background: transparent;
@@ -149,14 +178,14 @@ body::before {
 }
 
 #link-github {
-  font-size: 0.62rem;
+  font-size: 0.78rem;
   letter-spacing: 0.12em;
-  padding: 0.22rem 0.6rem;
+  padding: 0.28rem 0.75rem;
   border: 1px solid rgba(236, 224, 196, 0.25);
   border-radius: 999px;
   color: var(--cream);
   text-decoration: none;
-  opacity: 0.7;
+  opacity: 0.8;
 }
 #link-github:hover {
   opacity: 1;
@@ -166,13 +195,16 @@ body::before {
 
 .panel-btn {
   background: none;
-  border: 1px solid rgba(236, 224, 196, 0.25);
-  border-radius: 6px;
+  border: 1px solid rgba(236, 224, 196, 0.35);
+  border-radius: 999px;
   color: var(--cream);
+  font-family: 'Saira Condensed', sans-serif;
+  font-weight: 700;
   font-size: 0.9rem;
-  padding: 0.1rem 0.55rem;
+  letter-spacing: 0.14em;
+  padding: 0.3rem 0.9rem;
   cursor: pointer;
-  opacity: 0.7;
+  opacity: 0.95;
 }
 .panel-btn:hover {
   opacity: 1;
@@ -296,12 +328,30 @@ body::before {
 
 #readout-freshness {
   margin-top: 0.25rem;
-  font-size: 0.62rem;
+  font-size: 0.7rem;
   letter-spacing: 0.14em;
   color: var(--cream);
-  opacity: 0.45;
+  opacity: 0.55;
   min-height: 1.2em;
   transition: opacity 0.3s, color 0.3s;
+}
+
+/* The one actionable bit of telemetry: reads as a link, opens Settings. */
+.freshness-action {
+  font: inherit;
+  letter-spacing: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--brass);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.freshness-action:hover,
+.freshness-action:focus-visible {
+  color: var(--cream);
 }
 
 /* dispatch lamp: flares when a window is sent to the classifier */
@@ -435,9 +485,9 @@ body::before {
 
 .overlay-tag {
   margin: 0.7rem 0 1.8rem;
-  font-size: 0.8rem;
+  font-size: 0.92rem;
   letter-spacing: 0.08em;
-  opacity: 0.75;
+  opacity: 0.8;
 }
 
 .overlay-actions {
@@ -472,15 +522,55 @@ body::before {
 }
 
 .overlay-fine {
-  font-size: 0.66rem;
+  font-size: 0.76rem;
   line-height: 1.7;
-  opacity: 0.6;
+  opacity: 0.68;
   max-width: 28rem;
   margin: 0 auto 0.4rem;
+}
+
+.overlay-fine a {
+  color: var(--brass);
+  text-decoration: none;
+  border-bottom: 1px dotted color-mix(in srgb, var(--brass) 60%, transparent);
+  white-space: nowrap;
+}
+
+.overlay-fine a:hover {
+  border-bottom-style: solid;
 }
 .overlay-fine.dim {
   opacity: 0.35;
   letter-spacing: 0.14em;
+}
+
+/* Shortcut list: flex so a narrow card wraps *between* hints. Each hint is
+   nowrap, so a key cap can never be orphaned from the word it triggers. */
+.overlay-fine.keys {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem 1rem;
+  margin-top: 0.9rem;
+  opacity: 0.5;
+}
+
+.key-hint {
+  white-space: nowrap;
+}
+
+kbd {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.85em;
+  line-height: 1;
+  padding: 0.22em 0.45em;
+  margin-right: 0.15em;
+  color: var(--cream);
+  background: rgba(236, 224, 196, 0.08);
+  border: 1px solid rgba(236, 224, 196, 0.3);
+  border-bottom-width: 2px;
+  border-radius: 4px;
 }
 
 .overlay-credit {
@@ -616,10 +706,20 @@ body::before {
 }
 
 .config-note {
-  font-size: 0.62rem;
-  opacity: 0.55;
+  font-size: 0.72rem;
+  opacity: 0.62;
   line-height: 1.6;
   margin-bottom: 1rem;
+}
+
+/* Sign-up links sit inside dim notes, so lift them back to legible. */
+#config-dialog a {
+  color: var(--brass);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+#config-dialog a:hover {
+  color: var(--cream);
 }
 
 /* Sticky footer: always visible while the form scrolls behind it. */

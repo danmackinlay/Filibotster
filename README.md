@@ -1,19 +1,80 @@
 # Filibotster
 
+**Point a microphone at a speaker. Watch a giant vintage meter swing into the
+red as their words start sounding AI-generated.**
+
 [![The slop-o-meter reading 90, deep in PURE SLOP territory](docs/preview.webp)](https://filibotster.netlify.app/?demo=slop)
 
-Live rhetorical slop telemetry for the modern podium. Point a microphone at a
-speaker and project a giant vintage meter whose needle swings into the red as
-their recent language reads as AI-generated slop.
+Filibotster listens to live speech, transcribes it, and continuously scores the
+last minute or two for *slop* — the flat, hedging, delve-and-tapestry register
+of machine-written prose. The score drives a full-screen analogue dial you can
+project behind a podium, with subtitles running underneath.
 
-**Public instance:** `https://filibotster.danmackinlay.name`
-<!-- TODO: confirm URL after first Netlify deploy + domain attach -->
+### ▶ [Try it — no signup, no keys, no install](https://filibotster.netlify.app/?demo=slop)
 
-See [SPEC.md](SPEC.md) for the full design. Current state: **M2** — dial,
-subtitles, lexical slop meter, replay demo, Pangram client + relay, and both
-live-mic paths (Deepgram streaming with mic picker, Web Speech API fallback).
+That link plays a bundled demo speech that starts artisanal and decays into pure
+slop. When you're bored of it, hit **● LIVE MIC** and point it at a real voice.
 
-## Quick start (local, no keys needed)
+> **It's satire, not forensics.** AI-text detectors are calibrated on written
+> prose, not on transcripts of people talking off the cuff. A high reading is a
+> joke about someone's register, not evidence that a machine wrote their speech.
+> Please don't use it to accuse anyone of anything.
+
+## Do I need an API key?
+
+No. It works out of the box. Keys make it work *better*, and you add them in the
+app itself — press `s` for settings. They're stored only in your own browser.
+
+| What you want | What you need | What you get |
+| --- | --- | --- |
+| **Just to see it** | nothing | Demo speech, dial, subtitles. Works in any browser. |
+| **Live mic, free** | nothing | The browser's own speech recognition — **real Google Chrome only** (see below). |
+| **Live mic, dependable** | a [Deepgram](https://console.deepgram.com) key | Accurate transcription in any modern browser, plus a microphone picker. |
+| **A real AI detector** | a [Pangram](https://www.pangram.com) or [Sapling](https://sapling.ai) key | A commercial detector's verdict, instead of the free built-in word-spotting heuristic. |
+
+**The Chrome caveat.** Free live-mic mode uses the browser's built-in Web Speech
+API, which in practice means *real* Google Chrome. Chromium forks (Arc, Brave,
+Edge…) expose the API but their recogniser fails with a network error —
+Filibotster gives up and tells you so after a few tries. Safari and Firefox
+don't have it at all. A Deepgram key sidesteps the whole mess.
+
+**Without a detector key** the needle is driven by a free in-browser heuristic
+that counts slop words and tics. It's crude, it's fun, and it costs nothing.
+Tune its vocabulary in [app/src/slop-lexicon.json](app/src/slop-lexicon.json).
+
+### What the keys cost
+
+- **Deepgram** — speech-to-text. Sign up at
+  [console.deepgram.com](https://console.deepgram.com): no card required, and
+  new accounts get $200 of credit. Streaming runs about **$0.35/hour**, so that
+  free credit is roughly 550 hours of speeches. Create a key with **Create API
+  Key** and paste it into settings.
+- **Sapling** — AI detection, the cheap option. Sign up at
+  [sapling.ai](https://sapling.ai) and grab a key from the dashboard.
+  About **$1.22/hour of speech** at default settings, no subscription floor. Its
+  raw score is jumpier and less smoothed than Pangram's, which makes for a
+  livelier needle.
+- **Pangram** — AI detection, the strict option. Buy developer credits from your
+  [pangram.com](https://www.pangram.com) dashboard
+  ([pricing](https://www.pangram.com/pricing)). $0.05 per scan, which at the
+  default 20-second cadence is about **$9/hour of speech** — a live credit
+  counter runs in diagnostics (`d`).
+
+Pick which detector to use in settings → *AI detector*. Comparison and methodology
+notes live in [docs/research-commercial-detectors.md](docs/research-commercial-detectors.md).
+
+### Where your keys go
+
+Keys live in your browser's `localStorage` and are sent only to the API they
+belong to. The one exception: Pangram's API blocks browser requests outright, so
+Pangram calls pass through a tiny relay bundled with the site
+([worker/src/index.js](worker/src/index.js)) which holds the key in memory,
+logs nothing, and stores nothing. Sapling and Deepgram talk to the browser
+directly. If you'd rather not take that on trust, run your own copy — it takes
+about five minutes, see [Hosting your own](#hosting-your-own) — and point the
+relay URL at it.
+
+## Running it locally
 
 ```sh
 cd app
@@ -21,56 +82,16 @@ npm install
 npm run dev
 ```
 
-Open the printed URL, hit **▶ REPLAY DEMO**, and watch the bundled demo speech
-decay from artisanal to pure slop. **● LIVE MIC** without keys uses the
-browser's built-in speech recognition — which in practice means **real Google
-Chrome only**: Chromium forks (Arc, Brave, etc.) expose the API but their
-recognizer fails, and the app will tell you so after a few attempts. For any
-other browser, or better accuracy, bring a Deepgram key (below).
+Open the printed URL. No keys needed to get the demo running.
 
-Keyboard: `f` fullscreen · `space` pause · `d` diagnostics · `r` replay · `,` config.
-
-URL params: `?demo` auto-starts the replay; `?demo=slop` pre-warms the meter
-with the speech's slop section (used for screenshots and instant gratification).
-
-## Getting keys
-
-- **Deepgram** (speech-to-text, optional): sign up at
-  [console.deepgram.com](https://console.deepgram.com) — no card, and new
-  accounts get $200 of free credit (streaming costs ~$0.006/min ≈ $0.35/hour,
-  so that's ~550 hours of speeches). Create a key with **Create API Key**,
-  paste it into config (`,`). Works in every modern browser and unlocks the
-  mic picker.
-- **Pangram** (slop verdicts, strict): get an API key from your
-  [pangram.com](https://www.pangram.com) dashboard and buy developer credits
-  ([pricing](https://www.pangram.com/pricing)). Costs below.
-- **Sapling** (slop verdicts, livelier and ~7× cheaper): sign up at
-  [sapling.ai](https://sapling.ai), grab an API key from the dashboard.
-  Metered at $0.005/1k chars ≈ **$1.22/hour of speech** at the default
-  cadence, no subscription floor, and it talks to the browser directly (no
-  relay). Its raw continuous P(AI) is deliberately less verdict-smoothed
-  than Pangram — see [docs/research-commercial-detectors.md](docs/research-commercial-detectors.md).
-  Pick the backend in config → Cloud slop detector.
-
-## Pangram (the real detector)
-
-The lexical meter is a free heuristic. For actual
-[Pangram](https://www.pangram.com) verdicts, put a Pangram API key into the
-config dialog (`,`). Developer credits cost $0.05 per scan of ≤1000 words — at
-the default 20 s cadence that's **~$9/hour of speech**; a live credit counter
-runs in diagnostics (`d`).
-
-Pangram's API blocks browser CORS requests, so calls go through a tiny relay
-([worker/src/index.js](worker/src/index.js)). On the hosted instance the relay
-is the same site that serves the app, so the relay URL field stays empty.
-Keys live in your browser's localStorage and are sent only to their respective
-APIs; the Pangram key transits the relay in memory, unlogged. Distrustful?
-Deploy your own instance (below, ~5 minutes) and point the relay URL at it.
+Keyboard: `s` settings · `f` fullscreen · `space` pause · `d` diagnostics · `r` replay.
+Add `?demo` to the URL to auto-start the replay, or `?demo=slop` to start it
+already deep in the red (handy for screenshots and instant gratification).
 
 ## Hosting your own
 
-The deployment is a static site plus one tiny serverless relay at the same
-origin. Two supported targets; both free tiers are ample.
+A static site plus one small serverless relay on the same origin. Two supported
+targets; both free tiers are more than enough.
 
 ### Netlify (what the public instance runs on)
 
@@ -81,8 +102,8 @@ origin. Two supported targets; both free tiers are ample.
 1. Push this repo to GitHub (or GitLab etc.).
 2. In Netlify: **Add new site → Import an existing project**, pick the repo.
    Build settings are read from `netlify.toml`; change nothing, deploy.
-3. Optional custom domain: **Domain management → Add a domain**. If your DNS
-   is already on Netlify this is instant, including the certificate.
+3. Optional custom domain: **Domain management → Add a domain**. If your DNS is
+   already on Netlify this is instant, certificate included.
 
 No-git alternative: `npx netlify-cli deploy --prod` from the repo root.
 
@@ -103,19 +124,21 @@ One Worker serves the app as static assets and relays `/task`
 
 ## Spread the slop
 
-A printable A4 flier with a QR code pointing at the public instance, for
-leaving on conference tables and taping to podiums:
-**[flier.pdf](docs/flier.pdf)** (print). Source is
-[docs/flier.html](docs/flier.html) — edit and re-render with headless Chrome
-(`--print-to-pdf`) if the URL or the jokes ever change.
+A printable A4 flier with a QR code pointing at the public instance, for leaving
+on conference tables and taping to podiums: **[flier.pdf](docs/flier.pdf)**.
+Source is [docs/flier.html](docs/flier.html) — edit and re-render with headless
+Chrome (`--print-to-pdf`) if the URL or the jokes ever change.
 
 [<img src="docs/flier.webp" alt="Filibotster flier: a cream meter-face poster with QR code linking to filibotster.netlify.app" width="360">](docs/flier.pdf)
 
-## Honesty note
+## Under the hood
 
-AI-text detectors are calibrated on written prose, not ASR transcripts of
-speech. The needle is satire, not forensics. Tune the free detector to taste
-in [app/src/slop-lexicon.json](app/src/slop-lexicon.json).
+Everything runs in the browser — mic capture, transcription, scoring, the dial —
+except the Pangram relay. Vanilla TypeScript and Vite, no framework.
+[SPEC.md](SPEC.md) has the full design: architecture, why the relay exists, the
+trust model, and the detector-fusion maths.
+
+MIT licensed. See [LICENSE](LICENSE).
 
 ---
 

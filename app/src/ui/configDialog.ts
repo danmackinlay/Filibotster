@@ -3,12 +3,12 @@ import { webSpeechAvailable } from '../audio/webspeech'
 
 function sttCapabilityNote(): string {
   if (!webSpeechAvailable()) {
-    return 'This browser has no Web Speech API — live mic needs a Deepgram key.'
+    return 'This browser has no built-in speech recognition — the live mic needs a Deepgram key.'
   }
   return (
-    'Web Speech API detected. It is only reliable in real Google Chrome; ' +
-    'other Chromium-based browsers usually fail with a network error. ' +
-    'A Deepgram key works in any modern browser.'
+    'This browser has built-in speech recognition, but it is only dependable in ' +
+    'real Google Chrome; other Chromium browsers (Arc, Brave, Edge…) usually fail ' +
+    'with a network error. A Deepgram key works in any modern browser.'
   )
 }
 
@@ -80,6 +80,9 @@ export function setupConfigDialog(
 
   return {
     open() {
+      // showModal() throws if it's already open — reachable now that a keypress
+      // can fire while focus sits on one of the dialog's own buttons.
+      if (dialog.open) return
       fill()
       syncSliderReadout()
       if (capability) capability.textContent = sttCapabilityNote()

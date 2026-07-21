@@ -115,7 +115,7 @@ export class WebSpeechSource implements SttSource {
       const why = this.lastError ?? 'sessions end immediately'
       this.events.onStatus(
         'error',
-        `speech service unusable (${why}) — use Google Chrome, or a Deepgram key in config`,
+        `speech service unusable (${why}) — use Google Chrome, or a Deepgram key in settings`,
       )
       return
     }

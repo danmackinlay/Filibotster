@@ -62,8 +62,11 @@ const sttEvents: SttEvents = {
   },
   onStatus: (status: SttStatus, detail?: string) => {
     pillStt.dataset.state = status
-    pillStt.textContent = `STT: ${status.toUpperCase()}${detail ? ` (${detail})` : ''}`
-    if (status === 'error' && detail) showBanner(`STT: ${detail}`)
+    // Once live, naming the source beats repeating "LIVE" — the green pill
+    // already says live — and it keeps the label inside the pill's fixed width.
+    const label = status === 'live' && detail ? detail : status
+    pillStt.textContent = `MIC: ${label.toUpperCase()}`
+    if (status === 'error' && detail) showBanner(`MIC: ${detail}`)
   },
 }
 
@@ -187,7 +190,7 @@ function updateCloudPill(state?: string, label?: string): void {
     pillCloud.textContent = `${cloudLabel()}: ${label ?? state.toUpperCase()}`
   } else if (settings.cloudDetector === 'none') {
     pillCloud.dataset.state = 'off'
-    pillCloud.textContent = 'CLOUD: OFF'
+    pillCloud.textContent = 'DETECTOR: OFF'
   } else {
     pillCloud.dataset.state = 'off'
     pillCloud.textContent = `${cloudLabel()}: ${cloudConfigured() ? 'IDLE' : 'NO KEY'}`
@@ -273,25 +276,52 @@ requestAnimationFrame(frame)
 // slow telemetry tick
 const ago = (t: number) => `${Math.max(0, Math.round((Date.now() - t) / 1000))}s`
 
+// The "no detector yet" line is the one bit of telemetry that asks the user to
+// do something, so it carries a real button rather than a bare "(,)" hint. The
+// node is built once and re-attached, so the click listener survives the
+// twice-a-second re-render below.
+const freshnessAction = document.createElement('button')
+freshnessAction.type = 'button'
+freshnessAction.className = 'freshness-action'
+freshnessAction.textContent = 'add a detector key'
+freshnessAction.addEventListener('click', () => configDialog.open())
+
+// Re-rendering identical text 2×/s would restart the CSS transition and fight
+// the user's selection, so every write goes through here.
+let lastFreshness = ''
+function setFreshness(text: string): void {
+  if (lastFreshness === text) return
+  lastFreshness = text
+  readoutFreshness.textContent = text
+}
+
+function setFreshnessWithAction(prefix: string): void {
+  const key = ` action:${prefix}`
+  if (lastFreshness === key) return
+  lastFreshness = key
+  readoutFreshness.replaceChildren(document.createTextNode(prefix), freshnessAction)
+}
+
 function renderFreshness(): void {
   if (!powered) {
-    readoutFreshness.textContent = 'STANDBY — nothing is scored, no credits burn'
+    setFreshness('STANDBY — nothing is scored, no credits burn')
     return
   }
   if (!cloudConfigured()) {
-    readoutFreshness.textContent = 'lexical meter only — continuous, free'
+    setFreshnessWithAction('free slop-word meter only — ')
     return
   }
   if (cloudInFlight && dispatchSpan) {
-    readoutFreshness.textContent = `◉ window dispatched — speech from ${ago(dispatchSpan.from)} to ${ago(dispatchSpan.to)} ago`
+    setFreshness(`◉ scoring speech from ${ago(dispatchSpan.from)} to ${ago(dispatchSpan.to)} ago`)
     return
   }
   if (verdictAt && verdictSpan) {
-    readoutFreshness.textContent =
-      `verdict ${ago(verdictAt)} ago · covered speech from ${ago(verdictSpan.from)} to ${ago(verdictSpan.to)} ago`
+    setFreshness(
+      `verdict ${ago(verdictAt)} ago · scored speech from ${ago(verdictSpan.from)} to ${ago(verdictSpan.to)} ago`,
+    )
     return
   }
-  readoutFreshness.textContent = 'warming up — no window dispatched yet'
+  setFreshness('warming up — needs a few more words before the first scan')
 }
 
 setInterval(() => {
@@ -347,7 +377,8 @@ document.addEventListener('keydown', (ev) => {
     case 'd':
       diagnostics.toggle()
       break
-    case ',':
+    case 's':
+    case ',': // legacy alias; `s` is the documented one
       configDialog.open()
       break
     case 'r':

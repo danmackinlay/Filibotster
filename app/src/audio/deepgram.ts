@@ -86,7 +86,8 @@ export class DeepgramSource implements SttSource {
     } catch (err) {
       this.running = false
       const name = err instanceof DOMException ? err.name : String(err)
-      this.events.onStatus('error', `mic: ${name}`)
+      // bare name: main.ts already prefixes the banner with "MIC: "
+      this.events.onStatus('error', name)
       throw err
     }
 
